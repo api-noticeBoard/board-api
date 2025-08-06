@@ -4,103 +4,95 @@ import com.portolio.notic_board.dto.ExamDto;
 import com.portolio.notic_board.entity.ExamEntity;
 import com.portolio.notic_board.service.ExamService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.net.URI;
 import java.util.List;
+import java.util.stream.Collectors;
 
-@Controller
+@RestController
 @RequiredArgsConstructor
-@RequestMapping("/exams") // URL 경로 변경
+@RequestMapping("/exams")
 public class ExamController {
-    private final ExamService examService; // 서비스 객체명 변경
+    private final ExamService examService;
 
-    // 시험 목록 페이지
+    /**
+     * 모든 시험 목록을 조회하거나 키워드로 검색합니다.
+     *
+     * @param keyword 검색 키워드 (선택 사항)
+     * @return 시험 목록 (JSON)
+     */
     @GetMapping
-    public String listExams(Model model) { // 메서드명 변경
-        List<ExamEntity> exams = examService.getAllExams(); // 메서드 호출 및 변수명 변경
-        model.addAttribute("exams", exams); // 모델 속성명 변경
-        return "exam/list"; // 템플릿 경로 변경
-    }
-
-    // 시험 상세 페이지
-    @GetMapping("/{id}")
-    public String viewExam(@PathVariable Long id, Model model) { // 메서드명 변경
-        ExamEntity exam = examService.getExamById(id) // 메서드 호출 및 변수명 변경
-                .orElseThrow(() -> new IllegalArgumentException("Invalid exam ID: " + id));
-        model.addAttribute("exam", exam); // 모델 속성명 변경
-        return "exam/detail"; // 템플릿 경로 변경
-    }
-
-    // 시험 작성 폼 페이지
-    @GetMapping("/new")
-    public String showCreateForm(Model model) {
-        model.addAttribute("examDto", new ExamDto()); // DTO 객체명, 모델 속성명 변경
-        return "exam/form"; // 템플릿 경로 변경
-    }
-
-    // 시험 작성 처리
-    @PostMapping("/new")
-    public String createExam(@ModelAttribute ExamDto examDto, RedirectAttributes redirectAttributes) { // 메서드명, 파라미터명 변경
-        ExamEntity exam = ExamEntity.builder() // 엔티티 빌더명 변경
-                .title(examDto.getTitle())
-                .content(examDto.getContent())
-                .author(examDto.getAuthor())
-                .build();
-        examService.createExam(exam); // 서비스 메서드 호출, 파라미터명 변경
-        redirectAttributes.addFlashAttribute("message", "시험이 성공적으로 작성되었습니다."); // 메시지 변경
-        return "redirect:/exams"; // 리다이렉트 경로 변경
-    }
-
-    // 시험 수정 폼 페이지
-    @GetMapping("/edit/{id}")
-    public String showEditForm(@PathVariable Long id, Model model) {
-        ExamEntity exam = examService.getExamById(id) // 메서드 호출 및 변수명 변경
-                .orElseThrow(() -> new IllegalArgumentException("Invalid exam ID: " + id));
-        model.addAttribute("examDto", ExamDto.builder() // DTO 빌더명, 모델 속성명 변경
-                .id(exam.getId())
-                .title(exam.getTitle())
-                .content(exam.getContent())
-                .author(exam.getAuthor())
-                .build());
-        return "exam/form"; // 템플릿 경로 변경
-    }
-
-    // 시험 수정 처리
-    @PostMapping("/edit/{id}")
-    public String updateExam(@PathVariable Long id, @ModelAttribute ExamDto examDto, RedirectAttributes redirectAttributes) { // 메서드명, 파라미터명 변경
-        ExamEntity exam = ExamEntity.builder() // 엔티티 빌더명 변경
-                .id(id)
-                .title(examDto.getTitle())
-                .content(examDto.getContent())
-                .author(examDto.getAuthor())
-                .build();
-        examService.updateExam(id, exam); // 서비스 메서드 호출, 파라미터명 변경
-        redirectAttributes.addFlashAttribute("message", "시험이 성공적으로 수정되었습니다."); // 메시지 변경
-        return "redirect:/exams/" + id; // 리다이렉트 경로 변경
-    }
-
-    // 시험 삭제 처리
-    @PostMapping("/delete/{id}")
-    public String deleteExam(@PathVariable Long id, RedirectAttributes redirectAttributes) { // 메서드명 변경
-        examService.deleteExam(id); // 서비스 메서드 호출
-        redirectAttributes.addFlashAttribute("message", "시험이 성공적으로 삭제되었습니다."); // 메시지 변경
-        return "redirect:/exams"; // 리다이렉트 경로 변경
-    }
-
-    // 시험 검색 페이지
-    @GetMapping("/search")
-    public String searchExams(@RequestParam(value = "keyword", required = false) String keyword, Model model) { // 메서드명 변경
-        List<ExamEntity> exams; // 변수명 변경
+    public ResponseEntity<List<ExamDto>> listOrSearchExams(@RequestParam(value = "keyword", required = false) String keyword) {
+        List<ExamEntity> exams;
         if (keyword != null && !keyword.trim().isEmpty()) {
-            exams = examService.searchExams(keyword); // 서비스 메서드 호출
+            exams = examService.searchExams(keyword);
         } else {
-            exams = examService.getAllExams(); // 서비스 메서드 호출
+            exams = examService.getAllExams();
         }
-        model.addAttribute("exams", exams); // 모델 속성명 변경
-        model.addAttribute("keyword", keyword);
-        return "exam/list"; // 템플릿 경로 변경
+
+        List<ExamDto> examDtos = exams.stream()
+                .map(ExamDto::new) // this::convertToDto -> ExamDto::new
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(examDtos);
+    }
+
+    /**
+     * 특정 ID의 시험 정보를 조회합니다.
+     *
+     * @param id 시험 ID
+     * @return 시험 정보 (JSON) 또는 404 Not Found
+     */
+    @GetMapping("/{id}")
+    public ResponseEntity<ExamDto> viewExam(@PathVariable Long id) {
+        return examService.getExamById(id)
+                .map(ExamDto::new) // this::convertToDto -> ExamDto::new
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    /**
+     * 새로운 시험을 생성합니다.
+     *
+     * @param examDto 생성할 시험 정보 (JSON)
+     * @return 생성된 시험 정보와 201 Created 상태 코드
+     */
+    @PostMapping
+    public ResponseEntity<ExamDto> createExam(@RequestBody ExamDto examDto) {
+        ExamEntity examToCreate = examDto.toEntity(); // convertToEntity(examDto) -> examDto.toEntity()
+        ExamEntity createdExam = examService.createExam(examToCreate);
+
+        ExamDto createdDto = new ExamDto(createdExam); // convertToDto(createdExam) -> new ExamDto(createdExam)
+        URI location = URI.create("/exams/" + createdDto.getId());
+
+        return ResponseEntity.created(location).body(createdDto);
+    }
+
+    /**
+     * 특정 ID의 시험 정보를 수정합니다.
+     *
+     * @param id      수정할 시험 ID
+     * @param examDto 수정할 시험 정보 (JSON)
+     * @return 수정된 시험 정보와 200 OK 상태 코드
+     */
+    @PutMapping("/{id}")
+    public ResponseEntity<ExamDto> updateExam(@PathVariable Long id, @RequestBody ExamDto examDto) {
+        ExamEntity examToUpdate = examDto.toEntity(); // convertToEntity(examDto) -> examDto.toEntity()
+        ExamEntity updatedExam = examService.updateExam(id, examToUpdate);
+
+        return ResponseEntity.ok(new ExamDto(updatedExam)); // convertToDto(updatedExam) -> new ExamDto(updatedExam)
+    }
+
+    /**
+     * 특정 ID의 시험을 삭제합니다.
+     *
+     * @param id 삭제할 시험 ID
+     * @return 204 No Content 상태 코드
+     */
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteExam(@PathVariable Long id) {
+        examService.deleteExam(id);
+        return ResponseEntity.noContent().build();
     }
 }
