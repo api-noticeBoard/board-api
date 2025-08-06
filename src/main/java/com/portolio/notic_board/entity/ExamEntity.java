@@ -2,6 +2,9 @@ package com.portolio.notic_board.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 
@@ -12,6 +15,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@EntityListeners(AuditingEntityListener.class)
 public class ExamEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -26,9 +30,11 @@ public class ExamEntity {
     @Column(nullable = false)
     private String author;
 
+    @CreatedDate    // entity 생성 시 시간 자동 저장
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
+    @LastModifiedDate   // entity 수정 시 시간 자동 저장
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 }
