@@ -37,3 +37,30 @@ spring:
       hibernate:
         # 출력되는 SQL 쿼리를 보기 좋게 포맷팅합니다.
         format_sql: true
+
+# Swagger-UI
+springdoc:
+  # 1. Swagger UI 경로 설정
+  swagger-ui:
+    path: /swagger # 기본 경로. 변경 가능.
+    # 특정 그룹의 API만 필터링하여 보여줄 때 사용
+    # tags-sorter: alpha
+    # operations-sorter: alpha
+  # 2. API 문서(JSON) 경로 설정
+  api-docs:
+    path: /v1/api # 기본 경로. 변경 가능.
+  # 3. 기본 패키지 설정 (선택 사항)
+  packages-to-scan: com.portolio.notic_board # 이 패키지 하위의 컨트롤러만 문서화
+  # 4. 기본 응답 메시지 설정 (선택 사항)
+  # default-produces-media-type: application/json
+
+# OpenAPI 기본 정보 설정
+openapi:
+  info:
+    title: "게시판 프로젝트 API 명세서"
+    description: "게시판 서비스 및 Core 개발을 위한 API 문서입니다."
+    version: "v1.0.0"
+    contact:
+      name: "jimiboy"
+      email: "200493019@naver.com"
+#      url: "https://www.openlabs.co.kr"

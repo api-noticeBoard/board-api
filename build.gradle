@@ -35,6 +35,8 @@ dependencies {
 
 	// Add MyBatis
 	implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:3.0.3'
+	// Add OpenAPI(swagger)
+	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.6'
 }
 
 tasks.named('test') {

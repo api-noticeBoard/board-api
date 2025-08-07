@@ -34,7 +34,7 @@
         id = #{id}
     </select>
 
-    <insert id="insertExam" parameterType="com.portolio.notic_board.entity.Exam" useGeneratedKeys="true" keyProperty="id"> INSERT INTO exam (title, content, author, created_at, updated_at) VALUES (#{title}, #{content}, #{author}, NOW(), NOW())
+    <insert id="insertExam" parameterType="com.portolio.notic_board.entity.Exam" useGeneratedKeys="true" keyProperty="id"> INSERT INTO exam (title, content, author, created_at, updated_at) VALUES (#{title}, #{content}, #{author}, FORMATDATETIME(NOW(), 'yyyy-MM-dd HH:mm:ss.SSS'), FORMATDATETIME(NOW(), 'yyyy-MM-dd HH:mm:ss.SSS'))
     </insert>
 
     <update id="updateExam" parameterType="com.portolio.notic_board.entity.Exam"> UPDATE exam SET

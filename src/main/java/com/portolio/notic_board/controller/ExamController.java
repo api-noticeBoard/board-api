@@ -3,6 +3,9 @@ package com.portolio.notic_board.controller;
 import com.portolio.notic_board.dto.ExamDto;
 import com.portolio.notic_board.entity.ExamEntity;
 import com.portolio.notic_board.service.ExamService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -11,20 +14,39 @@ import java.net.URI;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Tag(name = "Exam", description = "예제 관련 API")
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/exams")
+@RequestMapping("/api/v1/exams")
 public class ExamController {
     private final ExamService examService;
 
     /**
-     * 모든 시험 목록을 조회하거나 키워드로 검색합니다.
+     * 특정 ID의 정보 조회.
+     *
+     * @param id 조회할 ID
+     * @return   조회 데이터 (JSON) 또는 404 Not Found
+     */
+    @GetMapping("/{id}")
+    @Operation(summary = "사용자 ID로 정보 조회", description = "사용자 ID로 검색.")
+    public ResponseEntity<ExamDto> viewExam(@Parameter(description = "조회할 ID", example = "1")
+                                                @PathVariable Long id) {
+        return examService.getExamById(id)
+                .map(ExamDto::new) // this::convertToDto -> ExamDto::new
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    /**
+     * 모든 목록을 조회 및 키워드 검색.
      *
      * @param keyword 검색 키워드 (선택 사항)
-     * @return 시험 목록 (JSON)
+     * @return        목록 (JSON)
      */
     @GetMapping
-    public ResponseEntity<List<ExamDto>> listOrSearchExams(@RequestParam(value = "keyword", required = false) String keyword) {
+    @Operation(summary = "사용자 ID로 정보 조회", description = "사용자 ID로 검색.")
+    public ResponseEntity<List<ExamDto>> listOrSearchExams(@Parameter(description = "검색어", example = "프로젝트1")
+                                                               @RequestParam(value = "keyword", required = false) String keyword) {
         List<ExamEntity> exams;
         if (keyword != null && !keyword.trim().isEmpty()) {
             exams = examService.searchExams(keyword);
@@ -39,26 +61,13 @@ public class ExamController {
     }
 
     /**
-     * 특정 ID의 시험 정보를 조회합니다.
+     * 새로운 데이터를 생성.
      *
-     * @param id 시험 ID
-     * @return 시험 정보 (JSON) 또는 404 Not Found
-     */
-    @GetMapping("/{id}")
-    public ResponseEntity<ExamDto> viewExam(@PathVariable Long id) {
-        return examService.getExamById(id)
-                .map(ExamDto::new) // this::convertToDto -> ExamDto::new
-                .map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
-    }
-
-    /**
-     * 새로운 시험을 생성합니다.
-     *
-     * @param examDto 생성할 시험 정보 (JSON)
-     * @return 생성된 시험 정보와 201 Created 상태 코드
+     * @param examDto 생성할 정보 (JSON)
+     * @return        생성된 데이터와 201 Created 상태 코드
      */
     @PostMapping
+    @Operation(summary = "데이터 생성", description = "새로운 데이터를 생성")
     public ResponseEntity<ExamDto> createExam(@RequestBody ExamDto examDto) {
         ExamEntity examToCreate = examDto.toEntity(); // convertToEntity(examDto) -> examDto.toEntity()
         ExamEntity createdExam = examService.createExam(examToCreate);
@@ -70,14 +79,16 @@ public class ExamController {
     }
 
     /**
-     * 특정 ID의 시험 정보를 수정합니다.
+     * 특정 ID의 정보를 수정.
      *
-     * @param id      수정할 시험 ID
-     * @param examDto 수정할 시험 정보 (JSON)
-     * @return 수정된 시험 정보와 200 OK 상태 코드
+     * @param id      수정할 ID
+     * @param examDto 수정할 정보 (JSON)
+     * @return        수정된 정보와 200 OK 상태 코드
      */
     @PutMapping("/{id}")
-    public ResponseEntity<ExamDto> updateExam(@PathVariable Long id, @RequestBody ExamDto examDto) {
+    @Operation(summary = "데이터 수정", description = "특정 ID의 데이터 수정")
+    public ResponseEntity<ExamDto> updateExam(@Parameter(description = "수정할 ID", example = "1")
+                                                  @PathVariable Long id, @RequestBody ExamDto examDto) {
         ExamEntity examToUpdate = examDto.toEntity(); // convertToEntity(examDto) -> examDto.toEntity()
         ExamEntity updatedExam = examService.updateExam(id, examToUpdate);
 
@@ -85,13 +96,15 @@ public class ExamController {
     }
 
     /**
-     * 특정 ID의 시험을 삭제합니다.
+     * 특정 ID의 데이터를 삭제.
      *
-     * @param id 삭제할 시험 ID
-     * @return 204 No Content 상태 코드
+     * @param id 삭제할 ID
+     * @return   204 No Content 상태 코드
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteExam(@PathVariable Long id) {
+    @Operation(summary = "데이터 삭제", description = "새로운 데이터를 생성")
+    public ResponseEntity<Void> deleteExam(@Parameter(description = "삭제할 ID", example = "1")
+                                               @PathVariable Long id) {
         examService.deleteExam(id);
         return ResponseEntity.noContent().build();
     }
