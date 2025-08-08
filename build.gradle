@@ -13,19 +13,56 @@ java {
 	}
 }
 
+
+//configurations.all {
+//	resolutionStrategy {
+//		// 'changing' 속성이 true인 모듈(모든 SNAPSHOT은 기본적으로 true)에 대한 캐시 정책
+//		// 캐시를 0초 동안만 유효하게 설정. 즉, 빌드 시 항상 최신 버전을 확인하라는 의미.
+//		cacheChangingModulesFor 0, 'seconds'
+//	}
+//}
 configurations {
 	compileOnly {
 		extendsFrom annotationProcessor
 	}
+	all{
+		resolutionStrategy {
+			cacheChangingModulesFor 0, 'seconds'
+		}
+	}
 }
 
 repositories {
+	// Nexus 사용
+//	maven{
+//		// 이 URL은 회사/팀의 Nexus 설정에 따라 달라집니다.
+//		// 스냅샷과 릴리즈를 모두 포함하는 group 저장소 URL을 사용하는 것이 일반적입니다.
+//		url "$repoUrl/$group"
+//		allowInsecureProtocol = true
+//		credentials {
+//			username "$repoUsername"
+//			password "$repoPassword"
+//		}
+//	}
+	// GitHub Packages 사용
+	maven {
+		name = "GitHubPackages"
+		url = "https://maven.pkg.github.com/$orgRepo"
+		credentials{
+			username = System.getenv("GITHUB_ACTOR")  // GitHub Actions 환경변수
+			password = System.getenv("GITHUB_TOKEN")  // gitHub Actions의 Secret
+		}
+	}
 	mavenCentral()
 }
 
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
+
+	// 공통 라이브러리
+	implementation 'com.portolio:common-system:0.0.1-SNAPSHOT'
+
 	compileOnly 'org.projectlombok:lombok'
 	runtimeOnly 'com.h2database:h2'
 	runtimeOnly 'com.mysql:mysql-connector-j'

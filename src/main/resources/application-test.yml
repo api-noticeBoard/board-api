@@ -1,0 +1,28 @@
+# =========================================
+#  테스트 서버(test) 프로필 설정 (Oracle DB)
+# =========================================
+#server:
+#  port: 8080
+
+spring:
+  datasource:
+    url: jdbc:oracle:thin:@//<your-oracle-host>:<port>/<service-name>
+    driver-class-name: oracle.jdbc.driver.OracleDriver
+    # 운영 DB와 분리된 테스트 환경 전용 유저를 사용합니다.
+    username: your_test_user
+    password: your_test_password
+  jpa:
+    database-platform: org.hibernate.dialect.OracleDialect
+    hibernate:
+      # 테스트 환경에서는 Entity와 테이블 구조가 일치하는지 검증만 하는 것이 안전합니다.
+      ddl-auto: validate
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+# test 환경에서는 API 테스트를 위해 Swagger UI를 활성화합니다.
+springdoc:
+  swagger-ui:
+    path: /swagger
+    enabled: true

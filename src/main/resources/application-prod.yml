@@ -1,0 +1,29 @@
+# =========================================
+#  운영 서버(prod) 프로필 설정 (Oracle DB)
+# =========================================
+#server:
+#  port: 8080
+
+spring:
+  datasource:
+    url: jdbc:oracle:thin:@//<your-oracle-host>:<port>/<service-name>
+    driver-class-name: oracle.jdbc.driver.OracleDriver
+    # 실제 운영 환경 전용 유저를 사용합니다.
+    username: your_prod_user
+    password: your_prod_password
+  jpa:
+    database-platform: org.hibernate.dialect.OracleDialect
+    hibernate:
+      # [매우 중요] 운영 환경에서는 절대 create, update 등을 사용하지 않습니다.
+      # validate 또는 none을 사용하여 스키마를 자동으로 변경하지 않도록 합니다.
+      ddl-auto: validate
+    # 운영 환경에서는 성능을 위해 SQL 로그를 끕니다.
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+
+# [매우 중요] prod 환경에서는 보안을 위해 Swagger UI를 비활성화합니다.
+springdoc:
+  swagger-ui:
+    enabled: false

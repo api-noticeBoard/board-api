@@ -1,8 +1,7 @@
-package com.portolio.notic_board.dto;
+package com.portfolio.notic_board.exam.dto;
 
-import com.portolio.notic_board.entity.ExamEntity;
+import com.portfolio.notic_board.exam.entity.ExamEntity;
 import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.*;
 
 import java.time.LocalDateTime;

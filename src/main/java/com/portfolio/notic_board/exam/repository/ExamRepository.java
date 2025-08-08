@@ -1,6 +1,6 @@
-package com.portolio.notic_board.repository;
+package com.portfolio.notic_board.exam.repository;
 
-import com.portolio.notic_board.entity.ExamEntity;
+import com.portfolio.notic_board.exam.entity.ExamEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

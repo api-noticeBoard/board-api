@@ -1,8 +1,8 @@
-package com.portolio.notic_board.controller;
+package com.portfolio.notic_board.exam.controller;
 
-import com.portolio.notic_board.dto.ExamDto;
-import com.portolio.notic_board.entity.ExamEntity;
-import com.portolio.notic_board.service.ExamService;
+import com.portfolio.notic_board.exam.dto.ExamDto;
+import com.portfolio.notic_board.exam.entity.ExamEntity;
+import com.portfolio.notic_board.exam.service.ExamService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
