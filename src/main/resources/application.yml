@@ -22,4 +22,4 @@ openapi:
 springdoc:
   api-docs:
     path: /v1/api
-  packages-to-scan: com.portolio.notic_board
+  packages-to-scan: com.portfolio.board

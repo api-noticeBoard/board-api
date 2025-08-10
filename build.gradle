@@ -4,7 +4,7 @@ plugins {
 	id 'io.spring.dependency-management' version '1.1.7'
 }
 
-group = 'com.portolio'
+group = 'com.portfolio'
 version = '0.0.1-SNAPSHOT'
 
 java {
@@ -45,23 +45,29 @@ repositories {
 //		}
 //	}
 	// GitHub Packages 사용
-	maven {
+	maven{
 		name = "GitHubPackages"
-		url = "https://maven.pkg.github.com/$orgRepo"
+		def repoPath = System.getenv("GPR_REPO_PATH") ?: project.findProperty("gpr.sys.path")
+		// URL: https://maven.pkg.github.com/{조직명}/{저장소}
+		url = "https://maven.pkg.github.com/${repoPath}"
 		credentials{
-			username = System.getenv("GITHUB_ACTOR")  // GitHub Actions 환경변수
-			password = System.getenv("GITHUB_TOKEN")  // gitHub Actions의 Secret
+			// CI환경(github actions)과 로컬PC 모두 지원하는 방식
+			username = System.getenv("GITHUB_ACTOR") ?: project.findProperty("gpr.user")
+			password = System.getenv("GITHUB_TOKEN") ?: project.findProperty("gpr.token")
 		}
 	}
+
 	mavenCentral()
 }
 
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
+	// 유효성 검증
+	implementation 'org.springframework.boot:spring-boot-starter-validation'
 
 	// 공통 라이브러리
-	implementation 'com.portolio:common-system:0.0.1-SNAPSHOT'
+	implementation 'com.portfolio:common-system:0.0.1-SNAPSHOT'
 
 	compileOnly 'org.projectlombok:lombok'
 	runtimeOnly 'com.h2database:h2'

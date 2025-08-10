@@ -1,4 +1,4 @@
-package com.portfolio.notic_board;
+package com.portfolio.board;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

@@ -1,8 +1,8 @@
-package com.portfolio.notic_board.exam.service;
+package com.portfolio.board.exam.service;
 
-import com.portfolio.notic_board.exam.entity.ExamEntity;
-import com.portfolio.notic_board.exam.mapper.ExamMapper;
-import com.portfolio.notic_board.exam.repository.ExamRepository;
+import com.portfolio.board.exam.entity.ExamEntity;
+import com.portfolio.board.exam.mapper.ExamMapper;
+import com.portfolio.board.exam.repository.ExamRepository;
 import jakarta.persistence.EntityNotFoundException; // 표준 예외 사용
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

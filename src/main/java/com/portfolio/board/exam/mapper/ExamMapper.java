@@ -1,6 +1,6 @@
-package com.portfolio.notic_board.exam.mapper;
+package com.portfolio.board.exam.mapper;
 
-import com.portfolio.notic_board.exam.entity.ExamEntity;
+import com.portfolio.board.exam.entity.ExamEntity;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.Update;

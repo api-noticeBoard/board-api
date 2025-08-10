@@ -1,4 +1,4 @@
-package com.portfolio.notic_board.exam.entity;
+package com.portfolio.board.exam.entity;
 
 import jakarta.persistence.*;
 import lombok.*;

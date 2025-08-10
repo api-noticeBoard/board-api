@@ -1,4 +1,4 @@
-package com.portfolio.notic_board;
+package com.portfolio.board;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

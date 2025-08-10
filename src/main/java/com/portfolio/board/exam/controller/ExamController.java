@@ -1,8 +1,10 @@
-package com.portfolio.notic_board.exam.controller;
+package com.portfolio.board.exam.controller;
 
-import com.portfolio.notic_board.exam.dto.ExamDto;
-import com.portfolio.notic_board.exam.entity.ExamEntity;
-import com.portfolio.notic_board.exam.service.ExamService;
+import com.portfolio.board.exam.dto.ExamDto;
+import com.portfolio.board.exam.entity.ExamEntity;
+import com.portfolio.board.exam.service.ExamService;
+import com.portfolio.syscomm.code.ErrorCode;
+import com.portfolio.syscomm.common.exception.CommonException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -31,10 +33,13 @@ public class ExamController {
     @Operation(summary = "사용자 ID로 정보 조회", description = "사용자 ID로 검색.")
     public ResponseEntity<ExamDto> viewExam(@Parameter(description = "조회할 ID", example = "1")
                                                 @PathVariable Long id) {
+
+        if (id == null || id <= 0) throw new CommonException(ErrorCode.INVALID_INPUT_VALUE);
+
         return examService.getExamById(id)
                 .map(ExamDto::new) // this::convertToDto -> ExamDto::new
                 .map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+                .orElseThrow(() -> new CommonException(ErrorCode.BOARD_NOT_FOUND));
     }
 
     /**

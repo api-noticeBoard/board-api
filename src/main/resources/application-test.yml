@@ -2,7 +2,7 @@
 #  테스트 서버(test) 프로필 설정 (Oracle DB)
 # =========================================
 #server:
-#  port: 8080
+#  port: 8081
 
 spring:
   datasource:

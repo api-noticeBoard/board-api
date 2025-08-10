@@ -1,6 +1,6 @@
-package com.portfolio.notic_board.exam.dto;
+package com.portfolio.board.exam.dto;
 
-import com.portfolio.notic_board.exam.entity.ExamEntity;
+import com.portfolio.board.exam.entity.ExamEntity;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
 
@@ -51,8 +51,6 @@ public class ExamDto {
                 .title(this.title)
                 .content(this.content)
                 .author(this.author)
-                .createdAt(this.createdAt)
-                .updatedAt(this.updatedAt)
                 .build();
     }
 }

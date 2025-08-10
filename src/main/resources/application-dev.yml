@@ -1,8 +1,13 @@
 # =========================================
 #  로컬 개발(dev) 프로필 설정 (H2 DB)
 # =========================================
-#server:
-#  port: 8080
+server:
+  shutdown: graceful
+#  port: 8081
+  servlet:
+    encoding:
+      charset: utf-8
+      force: true
 
 spring:
   h2:
