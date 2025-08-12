@@ -13,6 +13,9 @@ java {
 	}
 }
 
+// mapper.xml을 src로 넣기 위한 코드
+sourceSets.main.resources.srcDirs += ["src/main/java"]
+sourceSets.test.resources.srcDirs += ["src/test/java"]
 
 //configurations.all {
 //	resolutionStrategy {
@@ -80,6 +83,8 @@ dependencies {
 	implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:3.0.3'
 	// Add OpenAPI(swagger)
 	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.6'
+	// test, prod를 위한 DI
+//	runtimeOnly 'com.oracle.database.jdbc:ojdbc11'
 }
 
 tasks.named('test') {

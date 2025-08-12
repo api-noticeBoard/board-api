@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Tag(name = "Exam", description = "예제 관련 API")
@@ -40,6 +41,21 @@ public class ExamController {
                 .map(ExamDto::new) // this::convertToDto -> ExamDto::new
                 .map(ResponseEntity::ok)
                 .orElseThrow(() -> new CommonException(ErrorCode.BOARD_NOT_FOUND));
+    }
+
+    @GetMapping("mybatis/{id}")
+    @Operation(summary = "[Mybatis] 사용자 ID로 정보 조회 ", description = "[Mybatis] 사용자 ID로 검색")
+    public ResponseEntity<ExamDto> viewExamXml(@Parameter(description = "조회할 ID", example = "1")
+                                                    @PathVariable Long id) {
+        if (id == null || id <= 0) throw new CommonException(ErrorCode.INVALID_INPUT_VALUE);
+
+        Optional<ExamEntity> entity = examService.getExamByIdUsingMyBatisXml(id);
+
+        if (entity.isEmpty()) {
+            throw new CommonException(ErrorCode.BOARD_NOT_FOUND);
+        }
+
+        return ResponseEntity.ok(new ExamDto(entity.orElse(null)));
     }
 
     /**

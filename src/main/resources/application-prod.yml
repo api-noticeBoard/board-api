@@ -5,12 +5,12 @@
 #  port: 8081
 
 spring:
-  datasource:
-    url: jdbc:oracle:thin:@//<your-oracle-host>:<port>/<service-name>
-    driver-class-name: oracle.jdbc.driver.OracleDriver
-    # 실제 운영 환경 전용 유저를 사용합니다.
-    username: your_prod_user
-    password: your_prod_password
+#  datasource:
+#    url: jdbc:oracle:thin:@//<your-oracle-host>:<port>/<service-name>
+#    driver-class-name: oracle.jdbc.driver.OracleDriver
+#    # 실제 운영 환경 전용 유저를 사용합니다.
+#    username: your_prod_user
+#    password: your_prod_password
   jpa:
     database-platform: org.hibernate.dialect.OracleDialect
     hibernate:

@@ -7,6 +7,9 @@ spring:
   # 로컬에서 별도 설정 없이 실행 시 'dev' 프로필을 기본으로 사용합니다.
   profiles:
     active: dev
+# MyBatis가 mapper 파일을 찾을 경로를 명시적으로 지정
+mybatis:
+  mapper-locations: classpath:/mapper/**/*.xml
 
 # OpenAPI(Swagger) 공통 정보: API의 제목, 설명 등은 모든 환경에서 동일합니다.
 openapi:

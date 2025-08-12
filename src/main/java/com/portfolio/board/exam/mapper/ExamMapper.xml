@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.portfolio.board.exam.mapper.ExamMapper">
+    <resultMap id="examResultMap" type="com.portfolio.board.exam.entity.ExamEntity">
+        <id property="id" column="id"/>
+        <result property="title" column="title"/>
+        <result property="content" column="content"/>
+        <result property="author" column="author"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <!-- 1. searchExams 쿼리 추가 (어노테이션에서 이동) -->
+    <select id="searchExams" parameterType="string" resultMap="examResultMap">
+        SELECT id, title, content, author, created_at, updated_at
+        FROM exam
+        WHERE title LIKE CONCAT('%', #{keyword}, '%')
+        OR content LIKE CONCAT('%', #{keyword}, '%')
+        ORDER BY created_at DESC
+    </select>
+
+    <!-- 2. updateExamByMyBatis 쿼리 추가 (어노테이션에서 이동) -->
+    <!-- [개선] DB 종속적인 함수(NOW())를 제거합니다. 시간 값은 서비스 계층에서 설정 후 전달받는 것이 표준적입니다. -->
+    <update id="updateExamByMyBatis" parameterType="com.portfolio.board.exam.entity.ExamEntity">
+        UPDATE exam
+        SET
+        title = #{title},
+        content = #{content},
+        updated_at = #{updatedAt} -- NOW() 대신 파라미터 사용
+        WHERE
+        id = #{id}
+    </update>
+
+    <select id="findAllExamsXml" resultMap="examResultMap">
+        SELECT
+        id,
+        title,
+        content,
+        author,
+        created_at,
+        updated_at
+        FROM
+        exam ORDER BY
+        created_at DESC
+    </select>
+
+    <select id="findExamByIdXml" resultMap="examResultMap">
+        SELECT
+        id,
+        title,
+        content,
+        author,
+        created_at,
+        updated_at
+        FROM
+        exam
+        WHERE
+        id = #{id}
+    </select>
+
+    <insert id="insertExam" parameterType="com.portfolio.board.exam.entity.ExamEntity"
+            useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO
+        exam (
+        title
+        , content
+        , author
+        , created_at
+        , updated_at
+        ) VALUES (
+        #{title}
+        , #{content}
+        , #{author}
+        , #{createdAt}
+        , #{updatedAt}
+        )
+    </insert>
+
+    <update id="updateExam" parameterType="com.portfolio.board.exam.entity.ExamEntity">
+        UPDATE
+        exam
+        SET
+        title = #{title},
+        content = #{content},
+        updated_at = #{updatedAt}
+        WHERE
+        id = #{id}
+    </update>
+
+    <delete id="deleteExam" parameterType="java.lang.Long">
+        DELETE FROM
+        exam
+        WHERE
+        id = #{id}
+    </delete>
+
+</mapper>

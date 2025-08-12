@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -70,17 +71,20 @@ public class ExamService {
     }
 
     @Transactional(readOnly = true)
-    public ExamEntity getExamByIdUsingMyBatisXml(Long id) { // 메서드명 변경
-        return examMapper.findExamByIdXml(id);
+    public Optional<ExamEntity> getExamByIdUsingMyBatisXml(Long id) { // 메서드명 변경
+        return Optional.ofNullable(examMapper.findExamByIdXml(id));
     }
 
     @Transactional
     public int updateExamByMyBatis(ExamEntity exam) { // 메서드명, 파라미터명 변경
+        exam.setUpdatedAt(LocalDateTime.now());
         return examMapper.updateExamByMyBatis(exam);
     }
 
     @Transactional
     public void insertExamByMyBatis(ExamEntity exam) { // 메서드명, 파라미터명 변경
+        exam.setCreatedAt(LocalDateTime.now());
+        exam.setUpdatedAt(LocalDateTime.now());
         examMapper.insertExam(exam);
     }
 
