@@ -6,10 +6,10 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
 @EnableJpaAuditing	// JPA Auditing 활성화
 @SpringBootApplication
-public class NoticBoardApplication {
+public class BoardApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(NoticBoardApplication.class, args);
+		SpringApplication.run(BoardApplication.class, args);
 	}
 
 }
