@@ -31,6 +31,7 @@ spring:
     properties:
       hibernate:
         format_sql: true
+    open-in-view: false
 
 # dev 환경에서는 Swagger UI를 활성화합니다.
 springdoc:

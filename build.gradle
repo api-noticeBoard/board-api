@@ -4,7 +4,7 @@ plugins {
 	id 'io.spring.dependency-management' version '1.1.7'
 }
 
-group = 'com.portfolio'
+group = 'com.portfolio.board'
 version = '0.0.1-SNAPSHOT'
 
 java {
@@ -64,13 +64,13 @@ repositories {
 }
 
 dependencies {
-	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'	// JPA
+	implementation 'org.springframework.boot:spring-boot-starter-web'		//
 	// 유효성 검증
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
 
 	// 공통 라이브러리
-	implementation 'com.portfolio:common-system:0.0.1-SNAPSHOT'
+//	implementation 'com.portfolio.common:system:0.0.1-SNAPSHOT'
 
 	compileOnly 'org.projectlombok:lombok'
 	runtimeOnly 'com.h2database:h2'

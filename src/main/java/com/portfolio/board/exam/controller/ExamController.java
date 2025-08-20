@@ -3,9 +3,9 @@ package com.portfolio.board.exam.controller;
 import com.portfolio.board.exam.dto.ExamDto;
 import com.portfolio.board.exam.entity.ExamEntity;
 import com.portfolio.board.exam.service.ExamService;
-import com.portfolio.syscomm.code.ErrorCode;
+//import com.portfolio.syscomm.code.ErrorCode;
 //import com.portfolio.syscomm.common.exception.CommonException;
-import com.portfolio.syscomm.exception.CommonException;
+//import com.portfolio.syscomm.exception.CommonException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-@Tag(name = "Exam", description = "예제 관련 API")
+@Tag(name = "Exam", description = "예제 관련 API (h2DB 사용)")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/exams")
@@ -36,24 +36,27 @@ public class ExamController {
     public ResponseEntity<ExamDto> viewExam(@Parameter(description = "조회할 ID", example = "1")
                                                 @PathVariable Long id) {
 
-        if (id == null || id <= 0) throw new CommonException(ErrorCode.INVALID_INPUT_VALUE);
+        if (id == null || id <= 0) throw new RuntimeException();
+//        if (id == null || id <= 0) throw new CommonException(ErrorCode.INVALID_INPUT_VALUE);
 
         return examService.getExamById(id)
                 .map(ExamDto::new) // this::convertToDto -> ExamDto::new
                 .map(ResponseEntity::ok)
-                .orElseThrow(() -> new CommonException(ErrorCode.BOARD_NOT_FOUND));
+                .orElseThrow(() -> new RuntimeException());
+//                .orElseThrow(() -> new CommonException(ErrorCode.BOARD_NOT_FOUND));
     }
 
     @GetMapping("mybatis/{id}")
     @Operation(summary = "[Mybatis] 사용자 ID로 정보 조회 ", description = "[Mybatis] 사용자 ID로 검색")
     public ResponseEntity<ExamDto> viewExamXml(@Parameter(description = "조회할 ID", example = "1")
                                                     @PathVariable Long id) {
-        if (id == null || id <= 0) throw new CommonException(ErrorCode.INVALID_INPUT_VALUE);
+        if (id == null || id <= 0) throw new RuntimeException();
+//        if (id == null || id <= 0) throw new CommonException(ErrorCode.INVALID_INPUT_VALUE);
 
         Optional<ExamEntity> entity = examService.getExamByIdUsingMyBatisXml(id);
 
         if (entity.isEmpty()) {
-            throw new CommonException(ErrorCode.BOARD_NOT_FOUND);
+            throw new RuntimeException();
         }
 
         return ResponseEntity.ok(new ExamDto(entity.orElse(null)));
