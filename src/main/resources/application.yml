@@ -3,7 +3,7 @@
 # =========================================
 spring:
   application:
-    name: notic_board
+    name: board
   # 로컬에서 별도 설정 없이 실행 시 'dev' 프로필을 기본으로 사용합니다.
   profiles:
     active: dev

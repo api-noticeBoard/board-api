@@ -15,8 +15,8 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 public class ExamService {
-    private final ExamRepository examRepository; // 레포지토리 객체명 변경
-    private final ExamMapper examMapper; // 매퍼 객체명 변경
+    private final ExamRepository examRepository;
+    private final ExamMapper examMapper;
 
     @Transactional(readOnly = true)
     public List<ExamEntity> getAllExams() { // 메서드명 변경
@@ -29,7 +29,7 @@ public class ExamService {
     }
 
     @Transactional
-    public ExamEntity createExam(ExamEntity exam) { // 메서드명, 파라미터명 변경
+    public ExamEntity createExam(ExamEntity exam) {
         // JPA Auditing이 createdAt, updatedAt을 자동으로 설정해줍니다.
         return examRepository.save(exam);
     }
@@ -43,7 +43,7 @@ public class ExamService {
         // 2. DTO로부터 받은 데이터로 기존 엔티티의 필드를 업데이트합니다.
         exam.setTitle(updatedExam.getTitle());
         exam.setContent(updatedExam.getContent());
-        exam.setAuthor(updatedExam.getAuthor()); // author 필드 업데이트 추가
+        exam.setAuthor(updatedExam.getAuthor());
 
         // 3. save 호출 시 변경 감지(Dirty Checking)에 의해 UPDATE 쿼리가 실행되고,
         //    JPA Auditing이 updatedAt을 자동으로 갱신합니다.
@@ -51,7 +51,7 @@ public class ExamService {
     }
 
     @Transactional
-    public void deleteExam(Long id) { // 메서드명 변경
+    public void deleteExam(Long id) {
         // 삭제하기 전에 데이터가 존재하는지 확인하는 것이 더 안전합니다.
         if (!examRepository.existsById(id)) {
             throw new EntityNotFoundException("Exam not found with id: " + id);
@@ -64,7 +64,7 @@ public class ExamService {
         return examMapper.searchExams(keyword);
     }
 
-    // --- MyBatis 관련 메서드는 변경 없음 ---
+    // --- MyBatis 관련 메서드 ---
     @Transactional(readOnly = true)
     public List<ExamEntity> getAllExamsUsingMyBatisXml() { // 메서드명 변경
         return examMapper.findAllExamsXml();
@@ -72,7 +72,9 @@ public class ExamService {
 
     @Transactional(readOnly = true)
     public Optional<ExamEntity> getExamByIdUsingMyBatisXml(Long id) { // 메서드명 변경
-        return Optional.ofNullable(examMapper.findExamByIdXml(id));
+        ExamEntity result = (ExamEntity) examMapper.findExamByIdXml(id);
+
+        return result == null ? Optional.ofNullable(examMapper.findExamByIdXml(id)) : Optional.of(result);
     }
 
     @Transactional

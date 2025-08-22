@@ -3,9 +3,8 @@ package com.portfolio.board.exam.controller;
 import com.portfolio.board.exam.dto.ExamDto;
 import com.portfolio.board.exam.entity.ExamEntity;
 import com.portfolio.board.exam.service.ExamService;
-//import com.portfolio.syscomm.code.ErrorCode;
-//import com.portfolio.syscomm.common.exception.CommonException;
-//import com.portfolio.syscomm.exception.CommonException;
+import com.portfolio.common.system.exception.BusinessException;
+import com.portfolio.common.system.exception.ErrorCode;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -32,31 +31,28 @@ public class ExamController {
      * @return   조회 데이터 (JSON) 또는 404 Not Found
      */
     @GetMapping("/{id}")
-    @Operation(summary = "사용자 ID로 정보 조회", description = "사용자 ID로 검색.")
+    @Operation(summary = "ID로 정보 조회", description = "ID로 검색.")
     public ResponseEntity<ExamDto> viewExam(@Parameter(description = "조회할 ID", example = "1")
                                                 @PathVariable Long id) {
 
-        if (id == null || id <= 0) throw new RuntimeException();
-//        if (id == null || id <= 0) throw new CommonException(ErrorCode.INVALID_INPUT_VALUE);
+        if (id == null || id <= 0) throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE);
 
         return examService.getExamById(id)
                 .map(ExamDto::new) // this::convertToDto -> ExamDto::new
                 .map(ResponseEntity::ok)
-                .orElseThrow(() -> new RuntimeException());
-//                .orElseThrow(() -> new CommonException(ErrorCode.BOARD_NOT_FOUND));
+                .orElseThrow(() -> new BusinessException(ErrorCode.POST_NOT_FOUND));
     }
 
     @GetMapping("mybatis/{id}")
-    @Operation(summary = "[Mybatis] 사용자 ID로 정보 조회 ", description = "[Mybatis] 사용자 ID로 검색")
+    @Operation(summary = "[Mybatis] ID 정보 조회 ", description = "[Mybatis] ID로 검색")
     public ResponseEntity<ExamDto> viewExamXml(@Parameter(description = "조회할 ID", example = "1")
                                                     @PathVariable Long id) {
-        if (id == null || id <= 0) throw new RuntimeException();
-//        if (id == null || id <= 0) throw new CommonException(ErrorCode.INVALID_INPUT_VALUE);
+        if (id == null || id <= 0) throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE, id);
 
         Optional<ExamEntity> entity = examService.getExamByIdUsingMyBatisXml(id);
 
         if (entity.isEmpty()) {
-            throw new RuntimeException();
+            throw new BusinessException(ErrorCode.USER_NOT_FOUND);
         }
 
         return ResponseEntity.ok(new ExamDto(entity.orElse(null)));
@@ -69,7 +65,7 @@ public class ExamController {
      * @return        목록 (JSON)
      */
     @GetMapping
-    @Operation(summary = "사용자 ID로 정보 조회", description = "사용자 ID로 검색.")
+    @Operation(summary = "ID로 정보 조회", description = "ID로 검색.")
     public ResponseEntity<List<ExamDto>> listOrSearchExams(@Parameter(description = "검색어", example = "프로젝트1")
                                                                @RequestParam(value = "keyword", required = false) String keyword) {
         List<ExamEntity> exams;
