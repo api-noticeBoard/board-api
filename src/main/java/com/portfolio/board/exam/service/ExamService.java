@@ -59,12 +59,12 @@ public class ExamService {
         examRepository.deleteById(id);
     }
 
+    // --- MyBatis 관련 메서드 ---
     @Transactional(readOnly = true)
     public List<ExamEntity> searchExams(String keyword) { // 메서드명 변경
         return examMapper.searchExams(keyword);
     }
 
-    // --- MyBatis 관련 메서드 ---
     @Transactional(readOnly = true)
     public List<ExamEntity> getAllExamsUsingMyBatisXml() { // 메서드명 변경
         return examMapper.findAllExamsXml();
