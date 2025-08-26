@@ -7,6 +7,7 @@ import com.portfolio.board.api.mapper.CategoryMapper;
 import com.portfolio.board.api.repository.CategoryRepository;
 import com.portfolio.common.system.exception.BusinessException;
 import com.portfolio.common.system.exception.ErrorCode;
+import lombok.RequiredArgsConstructor;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,6 +17,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class CategoryService {
 
     private final CategoryRepository categoryRepo;

@@ -3,7 +3,6 @@ package com.portfolio.board.api.service;
 import com.portfolio.board.api.domain.Category;
 import com.portfolio.board.api.domain.Post;
 import com.portfolio.board.api.dto.PostRequest;
-import com.portfolio.board.api.mapper.CategoryMapper;
 import com.portfolio.board.api.mapper.PostMapper;
 import com.portfolio.board.api.repository.CategoryRepository;
 import com.portfolio.board.api.repository.PostRepository;
@@ -18,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class PostService {
 
     private final PostRepository postRepo;
+    private final CategoryRepository categoryRepo;
 
     private final PostMapper postMapper;
 
