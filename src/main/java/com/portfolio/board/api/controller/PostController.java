@@ -1,7 +1,10 @@
 package com.portfolio.board.api.controller;
 
-import com.portfolio.board.api.dto.PostDto;
+import com.portfolio.board.api.dto.CategoryResponse;
+import com.portfolio.board.api.dto.PostRequest;
 import com.portfolio.board.api.service.PostService;
+import com.portfolio.common.system.exception.BusinessException;
+import com.portfolio.common.system.exception.ErrorCode;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
@@ -10,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/posts")
@@ -17,6 +21,8 @@ import java.net.URI;
 public class PostController {
 
     private final PostService postService;
+
+
 
     /**
      * POST /api/v1/posts
@@ -30,7 +36,7 @@ public class PostController {
      */
     @PostMapping
     @Operation(summary = "게시글 생성", description = "새로운 게시글을 생성")
-    public ResponseEntity<Void> createPost(@Valid @RequestBody PostDto.Create requestDto) {
+    public ResponseEntity<Void> createPost(@Valid @RequestBody PostRequest.Create requestDto) {
         // 1. @Valid 어노테이션을 통해 requestDto의 유효성을 검사합니다.
         //    만약 검증에 실패하면, system-common의 GlobalExceptionHandler가
         //    MethodArgumentNotValidException을 처리하여 400 에러를 응답합니다.
@@ -47,7 +53,7 @@ public class PostController {
     @PutMapping("/{id}")
     @Operation(summary = "게시글 수정", description = "게시글 ID의 게시글 수정")
     public ResponseEntity<Void> UpdatePost(@Parameter(description = "수정할 ID", example = "1")
-                                               @PathVariable Long postId, @Valid @RequestBody PostDto.Create requestDto){
+                                               @PathVariable Long postId, @Valid @RequestBody PostRequest.Create requestDto){
         postService.updatePost(postId, requestDto);
 
         return ResponseEntity.ok().build();

@@ -4,15 +4,9 @@ import com.portfolio.board.api.domain.Category;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@Getter
-@NoArgsConstructor
-public class CategoryDto {
-
-    private Long id;
-    private String name;
+public class CategoryRequest {
 
     @Getter @Setter
     public static class Create{
@@ -35,8 +29,4 @@ public class CategoryDto {
         private String name;
     }
 
-    public CategoryDto(Category category){
-        this.id = category.getId();
-        this.name = category.getName();
-    }
 }

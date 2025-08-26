@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.portfolio.board.api.mapper.PostMapper">
+    <resultMap id="postResultMap" type="com.portfolio.board.api.domain.Post">
+        <id property="id" column="id"/>
+        <result property="title" column="title"/>
+        <result property="content" column="content"/>
+        <result property="author" column="author"/>
+<!--        <result property="createdAt" column="created_at"/>-->
+<!--        <result property="updatedAt" column="updated_at"/>-->
+
+<!--        연관된 Category 객체를 매핑하는 부분 -->
+        <association property="category" javaType="com.portfolio.board.api.domain.Category">
+            <result property="id" column="category_id"/>
+            <result property="name" column="category_name"/>
+        </association>
+    </resultMap>
+</mapper>

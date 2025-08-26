@@ -2,115 +2,24 @@ package com.portfolio.board.api.service;
 
 import com.portfolio.board.api.domain.Category;
 import com.portfolio.board.api.domain.Post;
-import com.portfolio.board.api.dto.CategoryDto;
-import com.portfolio.board.api.dto.PostDto;
+import com.portfolio.board.api.dto.PostRequest;
+import com.portfolio.board.api.mapper.CategoryMapper;
+import com.portfolio.board.api.mapper.PostMapper;
 import com.portfolio.board.api.repository.CategoryRepository;
 import com.portfolio.board.api.repository.PostRepository;
 import com.portfolio.common.system.exception.BusinessException;
 import com.portfolio.common.system.exception.ErrorCode;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
 public class PostService {
 
     private final PostRepository postRepo;
-    private final CategoryRepository categoryRepo;
 
-    public CategoryDto getCategoryById(Long id){
-
-    }
-
-    public CategoryDto getCategoryByName(String name){
-
-    }
-
-    /**
-     * 전체조회
-     *
-     * @return  전체 List 데이터
-     */
-    public List<CategoryDto> getAllcategories(){
-        return categoryRepo.findAll().stream()
-                .map(CategoryDto::new)
-                .collect(Collectors.toList());
-    }
-
-    /**
-     * 새로운 카테고리 생성.
-     *
-     * @param categoryDto 카테고리 요청 데이터.
-     * @return            카테고리 ID 리턴.
-     */
-    @Transactional
-    public Long createCategory(CategoryDto.Create categoryDto){
-
-        Optional<Category> category = categoryRepo.findByName(categoryDto.getName());
-
-        if (categoryRepo.findByName(categoryDto.getName()).isPresent()) {
-            throw new BusinessException(ErrorCode.CATEGORY_NAME_DUPLICATIED);
-        }
-
-        Category saveCategory = categoryRepo.save(categoryDto.toEntity());
-
-        return saveCategory.getId();
-    }
-
-    /**
-     * 카테고리 수정.
-     *
-     * @param categoryId    카테고리 ID.
-     * @param categoryDto   카테고리 요청 데이터.
-     * @return              카테고리 ID 리턴.
-     */
-    @Transactional
-    public Long updateCategory(Long categoryId, CategoryDto.Update categoryDto){
-
-        // 수정할 카테고리 존재 확인
-        Category category = categoryRepo.findById(categoryId)
-                .orElseThrow(()-> new BusinessException(ErrorCode.CATEGORY_NOT_FOUND));
-        // 같은 이름 카테고리 확인
-        Optional<Category> newCategory = categoryRepo.findByName(categoryDto.getName());
-
-        // 같은 카테고리명 확인
-        if (newCategory.isPresent()){
-            // 수정 중인 카테고리가 아닌지 확인
-            if (!newCategory.get().getId().equals(categoryId)){
-                // ID가 다를 경우 이름 중복
-                throw new BusinessException(ErrorCode.CATEGORY_NAME_DUPLICATIED);
-            }
-        }
-        if (categoryDto.getName().isBlank()) throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE, "카테고리 명을 입력해주세요.");
-        category.setName(categoryDto.getName());
-
-        return newCategory.get().getId();
-    }
-
-    /**
-     * 카테고리 삭제
-     *
-     * @param categoryId 카테고리 ID
-     * @return           카테고리 ID 리턴.
-     */
-    @Transactional
-    public Long deleteCategory(Long categoryId){
-
-        // 삭제할 카테고리 존재 확인
-        if (categoryRepo.existsById(categoryId)) {
-            throw new BusinessException(ErrorCode.CATEGORY_NOT_FOUND);
-        }
-        // 삭제
-        categoryRepo.deleteById(categoryId);
-
-        return categoryId;
-    }
+    private final PostMapper postMapper;
 
     /**
      * 새로운 게시글을 생성합니다.
@@ -122,7 +31,7 @@ public class PostService {
      *                데이터 일관성을 보장합니다.
      */
     @Transactional
-    public Long createPost(PostDto.Create postDto) {
+    public Long createPost(PostRequest.Create postDto) {
 
         // 1. 카테고리가 존재하는지 확인합니다.
         //    orElseThrow를 사용하여 카테고리가 없으면 BusinessException을 던집니다.
@@ -152,7 +61,7 @@ public class PostService {
      * @return          게시물 ID 리턴
      */
     @Transactional
-    public Long updatePost(Long postId, PostDto.Create postDto){
+    public Long updatePost(Long postId, PostRequest.Create postDto){
 
         // ID로 기존 게시물 존재 체크
         Post post = postRepo.findById(postId)

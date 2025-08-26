@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.portfolio.board.api.mapper.CategoryMapper">
+    <resultMap id="categoryResultMap" type="com.portfolio.board.api.domain.Category">
+        <id property="id" column="id"/>
+        <result property="name" column="name"/>
+<!--        <result property="author" column="author"/>-->
+<!--        <result property="createdAt" column="created_at"/>-->
+<!--        <result property="updatedAt" column="updated_at"/>-->
+    </resultMap>
+
+        <select id="searchCategoryByKeywordXml" parameterType="string" resultMap="categoryResultMap">
+            SELECT
+                id
+                ,name
+            FROM category
+            WHERE name LIKE CONCAT('%', #{keyword}, '%')
+                OR id LIKE CONCAT('%', #{keyword}, '%')
+            ORDER BY created_at DESC
+        </select>
+</mapper>
