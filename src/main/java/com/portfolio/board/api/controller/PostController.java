@@ -3,8 +3,7 @@ package com.portfolio.board.api.controller;
 import com.portfolio.board.api.dto.CategoryResponse;
 import com.portfolio.board.api.dto.PostRequest;
 import com.portfolio.board.api.service.PostService;
-import com.portfolio.common.system.exception.BusinessException;
-import com.portfolio.common.system.exception.ErrorCode;
+import io.lettuce.core.dynamic.annotation.Param;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
@@ -21,8 +20,6 @@ import java.util.List;
 public class PostController {
 
     private final PostService postService;
-
-
 
     /**
      * POST /api/v1/posts

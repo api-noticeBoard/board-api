@@ -71,6 +71,7 @@ dependencies {
 
 	// 공통 라이브러리
 	implementation 'com.portfolio.common:system:0.0.1-SNAPSHOT'
+	implementation 'com.portfolio.common:business:0.0.1-SNAPSHOT'
 
 	compileOnly 'org.projectlombok:lombok'
 	runtimeOnly 'com.h2database:h2'

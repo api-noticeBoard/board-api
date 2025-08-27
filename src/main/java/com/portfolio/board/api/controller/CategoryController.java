@@ -8,10 +8,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -25,10 +22,14 @@ public class CategoryController {
     @GetMapping("/search")
     @Operation(summary = "keyword로 카테고리 검색", description = "keyword 검색.")
     public ResponseEntity<List<CategoryResponse>> searchCategoryByKeyword(@Parameter(description = "keyword 검색", example = "TEST")
-                                                                          @PathVariable String keyword){
+                                                                              @RequestParam(value = "keyword", required = false) String keyword){
+        List<CategoryResponse> categoryResponses;
         if (keyword.isBlank()) categoryService.getAllcategories();
-
-        List<CategoryResponse> categoryResponses = categoryService.searchCategoryByKeywordXml(keyword);
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            categoryResponses = categoryService.searchCategoryByKeywordXml(keyword);
+        } else {
+            categoryResponses = categoryService.getAllcategories();
+        }
 
         if (categoryResponses.isEmpty())    throw new BusinessException(ErrorCode.CATEGORY_NOT_FOUND);
 
