@@ -11,7 +11,7 @@ import lombok.Setter;
 public class PostRequest {
 
     @Getter @Setter
-    public static class Create {
+    public static class PostCreate {
         @NotBlank(message = "제목은 비어 있을 수 없습니다.")
         @Size(max = 100, message = "제목은 100자를 넘을 수 없습니다.")
         private String title;
@@ -33,7 +33,7 @@ public class PostRequest {
     }
 
     @Getter @Setter
-    public static class Update {
+    public static class PostUpdate {
         @NotBlank(message = "제목은 비어 있을 수 없습니다.")
         @Size(max = 100, message = "제목은 100자를 넘을 수 없습니다.")
         private String title;

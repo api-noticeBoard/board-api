@@ -65,7 +65,7 @@ public class ExamController {
      * @return        목록 (JSON)
      */
     @GetMapping
-    @Operation(summary = "ID로 정보 조회", description = "ID로 검색.")
+    @Operation(summary = "keyword 조회", description = "keyword로 검색.")
     public ResponseEntity<List<ExamDto>> listOrSearchExams(@Parameter(description = "검색어", example = "프로젝트1")
                                                                @RequestParam(value = "keyword", required = false) String keyword) {
         List<ExamEntity> exams;

@@ -5,12 +5,16 @@ import com.portfolio.board.api.dto.CategoryRequest;
 import com.portfolio.board.api.dto.CategoryResponse;
 import com.portfolio.board.api.mapper.CategoryMapper;
 import com.portfolio.board.api.repository.CategoryRepository;
+import com.portfolio.board.exam.dto.ExamDto;
 import com.portfolio.common.system.exception.BusinessException;
 import com.portfolio.common.system.exception.ErrorCode;
+import io.swagger.v3.oas.annotations.Parameter;
 import lombok.RequiredArgsConstructor;
 import org.apache.ibatis.annotations.Param;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.List;
 import java.util.Optional;
@@ -22,6 +26,7 @@ public class CategoryService {
 
     private final CategoryRepository categoryRepo;
     private final CategoryMapper categoryMapper;
+
     /**
      * 카테고리 keyword 검색
      * @param keyword   검색 keyword
@@ -33,16 +38,27 @@ public class CategoryService {
     }
 
     /**
-     * 카테고리 단건 조회
-     * @param name 카테고리명
+     * 카테고리명로 조회
+     * @param categoryName 카테고리명
      * @return     카테고리 응답 데이터 리턴.
      */
     @Transactional(readOnly = true)
-    public CategoryResponse getCategoryByName(String name){
-        Category category = categoryRepo.findByName(name)
+    public CategoryResponse getCategoryByName(String categoryName){
+        Category category = categoryRepo.findByName(categoryName)
                 .orElseThrow(()-> new BusinessException(ErrorCode.CATEGORY_NOT_FOUND));
 
+        return new CategoryResponse(category);
+    }
 
+    /**
+     * 카테고리ID로 조회
+     * @param categoryId 카테고리ID
+     * @return     카테고리 응답 데이터 리턴.
+     */
+    @Transactional(readOnly = true)
+    public CategoryResponse getCategoryById(Long categoryId){
+        Category category = categoryRepo.findById(categoryId)
+                .orElseThrow(()-> new BusinessException(ErrorCode.CATEGORY_NOT_FOUND));
 
         return new CategoryResponse(category);
     }
@@ -53,7 +69,7 @@ public class CategoryService {
      * @return  전체 List 데이터
      */
     @Transactional(readOnly = true)
-    public List<CategoryResponse> getAllcategories(){
+    public List<CategoryResponse> getAllCategories(){
         return categoryRepo.findAll().stream()
                 .map(CategoryResponse::new)
                 .collect(Collectors.toList());
@@ -66,7 +82,7 @@ public class CategoryService {
      * @return            카테고리 ID 리턴.
      */
     @Transactional
-    public Long createCategory(CategoryRequest.Create categoryDto){
+    public Long createCategory(CategoryRequest.CategoryCreate categoryDto){
 
         Optional<Category> category = categoryRepo.findByName(categoryDto.getName());
 
@@ -87,7 +103,7 @@ public class CategoryService {
      * @return              카테고리 ID 리턴.
      */
     @Transactional
-    public Long updateCategory(Long categoryId, CategoryRequest.Update categoryDto){
+    public CategoryResponse updateCategory(Long categoryId, CategoryRequest.CategoryUpdate categoryDto){
 
         // 수정할 카테고리 존재 확인
         Category category = categoryRepo.findById(categoryId)
@@ -104,9 +120,10 @@ public class CategoryService {
             }
         }
         if (categoryDto.getName().isBlank()) throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE, "카테고리 명을 입력해주세요.");
+        // Entity 업데이트
         category.setName(categoryDto.getName());
 
-        return newCategory.get().getId();
+        return new CategoryResponse(category);
     }
 
     /**

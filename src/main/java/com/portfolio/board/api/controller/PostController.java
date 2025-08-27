@@ -1,9 +1,10 @@
 package com.portfolio.board.api.controller;
 
-import com.portfolio.board.api.dto.CategoryResponse;
 import com.portfolio.board.api.dto.PostRequest;
+import com.portfolio.board.api.dto.PostResponse;
 import com.portfolio.board.api.service.PostService;
-import io.lettuce.core.dynamic.annotation.Param;
+import com.portfolio.common.system.exception.BusinessException;
+import com.portfolio.common.system.exception.ErrorCode;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
@@ -22,6 +23,42 @@ public class PostController {
     private final PostService postService;
 
     /**
+     * keywod 검색
+     *
+     * @param keyword 검색할 키워드
+     * @return        응답 데이터 리턴.
+     */
+    @GetMapping("/search")
+    @Operation(summary = "keyword 검색", description = "게시글을 keyword로 검색")
+    public ResponseEntity<List<PostResponse>> searchPostByKeywordXml(@Parameter(description = "keyword 검색", example = "테스트")
+                                                                     @RequestParam(value = "keyword", required = false) String keyword){
+        List<PostResponse> postResponses;
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            postResponses = postService.searchPostByKeywordXml(keyword);
+        } else {
+            postResponses = postService.getAllPosts();
+        }
+        if (postResponses.isEmpty())    throw new BusinessException(ErrorCode.CATEGORY_NOT_FOUND);
+
+        return ResponseEntity.ok(postResponses);
+    }
+
+    /**
+     * 게시물 단건조회
+     *
+     * @param postId 게시물ID
+     * @return       응답 데이터 리턴
+     */
+    @GetMapping("/search/{postId}")
+    @Operation(summary = "게시물 단건조회", description = "게시글")
+    public ResponseEntity<PostResponse> getPostById(@Parameter(description = "게시물 ID", example = "1")
+                                                        @PathVariable Long postId){
+        if (postId == null || postId <= 0) throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE);
+
+        return ResponseEntity.ok(postService.getPostById(postId));
+    }
+
+    /**
      * POST /api/v1/posts
      * 새로운 게시글을 생성하는 API 엔드포인트입니다.
      *
@@ -32,8 +69,8 @@ public class PostController {
      *         생성된 리소스의 위치를 나타내는 'Location' 헤더를 반환합니다.
      */
     @PostMapping
-    @Operation(summary = "게시글 생성", description = "새로운 게시글을 생성")
-    public ResponseEntity<Void> createPost(@Valid @RequestBody PostRequest.Create requestDto) {
+    @Operation(summary = "게시글 생성", description = "새로운 게시글 생성")
+    public ResponseEntity<Void> createPost(@Valid @RequestBody PostRequest.PostCreate requestDto) {
         // 1. @Valid 어노테이션을 통해 requestDto의 유효성을 검사합니다.
         //    만약 검증에 실패하면, system-common의 GlobalExceptionHandler가
         //    MethodArgumentNotValidException을 처리하여 400 에러를 응답합니다.
@@ -47,13 +84,35 @@ public class PostController {
         return ResponseEntity.created(location).build();
     }
 
-    @PutMapping("/{id}")
-    @Operation(summary = "게시글 수정", description = "게시글 ID의 게시글 수정")
-    public ResponseEntity<Void> UpdatePost(@Parameter(description = "수정할 ID", example = "1")
-                                               @PathVariable Long postId, @Valid @RequestBody PostRequest.Create requestDto){
+    /**
+     * 게시글 수정
+     *
+     * @param postId     게시글 ID
+     * @param requestDto 게시글 요청 내용
+     * @return           Http 상태 리턴.
+     */
+    @PutMapping("/{postId}")
+    @Operation(summary = "게시글 수정", description = "게시글ID로 수정")
+    public ResponseEntity<Void> updatePost(@Parameter(description = "수정할 ID", example = "1")
+                                               @PathVariable Long postId, @Valid @RequestBody PostRequest.PostUpdate requestDto){
         postService.updatePost(postId, requestDto);
 
         return ResponseEntity.ok().build();
+    }
+
+    /**
+     * 게시글 삭제
+     *
+     * @param postId    게시글 ID
+     * @return          Http 상태 리턴.
+     */
+    @DeleteMapping("/{postId}")
+    @Operation(summary = "게시글 삭제", description = "게시글ID의 삭제")
+    public ResponseEntity<Void> deletePost(@Parameter(description = "삭제할 ID", example = "1")
+                                           @PathVariable Long postId){
+        postService.deletePost(postId);
+
+        return ResponseEntity.noContent().build();
     }
 
 }

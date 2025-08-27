@@ -1,4 +1,4 @@
-package com.portfolio.board.api.config;
+package com.portfolio.board.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -33,6 +33,8 @@ public class SecurityConfig {
                                 "/swagger-ui/**"
                                 , "/swagger/**"
                                 , "/v1/api/**").permitAll()
+                        // 개발 편의를 위해 API 경로 전체를 임시로 허용하는 규칙 추가
+                        .requestMatchers("/api/**").permitAll()
                         // 그 외 나머지 모든 요청은 반드시 인증(로그인)을 거쳐야 합니다.
                         .anyRequest().authenticated()
                 );

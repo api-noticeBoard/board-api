@@ -6,14 +6,36 @@
         <id property="id" column="id"/>
         <result property="title" column="title"/>
         <result property="content" column="content"/>
-        <result property="author" column="author"/>
-<!--        <result property="createdAt" column="created_at"/>-->
-<!--        <result property="updatedAt" column="updated_at"/>-->
-
+        <result property="createdAt" column="created_at"/>
+        <result property="createdBy" column="created_by"/>
+        <result property="modifiedAt" column="modified_at"/>
+        <result property="modifiedBy" column="modified_by"/>
 <!--        연관된 Category 객체를 매핑하는 부분 -->
         <association property="category" javaType="com.portfolio.board.api.domain.Category">
-            <result property="id" column="category_id"/>
+            <id property="id" column="category_id"/>
             <result property="name" column="category_name"/>
         </association>
     </resultMap>
+    
+    <select id="searchPostByKeywordXml" parameterType="string" resultMap="postResultMap">
+        SELECT
+            a.id
+            , a.title
+            , a.content
+            , b.id            as category_id
+            , b.name          as category_name
+            , a.created_at
+            , a.created_by
+            , a.modified_at
+            , a.modified_by
+        FROM
+            post a
+        JOIN
+            category b ON a.category_id = b.id
+        WHERE
+            UPPER(a.title) LIKE CONCAT('%', UPPER(#{keyword}), '%')
+            OR UPPER(a.content) LIKE CONCAT('%', UPPER(#{keyword}), '%')
+            OR UPPER(b.name) LIKE CONCAT('%', UPPER(#{keyword}), '%')
+        ORDER BY a.id DESC
+    </select>
 </mapper>

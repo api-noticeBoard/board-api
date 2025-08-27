@@ -5,18 +5,23 @@
     <resultMap id="categoryResultMap" type="com.portfolio.board.api.domain.Category">
         <id property="id" column="id"/>
         <result property="name" column="name"/>
-<!--        <result property="author" column="author"/>-->
-<!--        <result property="createdAt" column="created_at"/>-->
-<!--        <result property="updatedAt" column="updated_at"/>-->
+        <result property="createdAt" column="created_at"/>
+        <result property="createdBy" column="created_by"/>
+        <result property="modifiedAt" column="modified_at"/>
+        <result property="modifiedBy" column="modified_by"/>
     </resultMap>
 
-        <select id="searchCategoryByKeywordXml" parameterType="string" resultMap="categoryResultMap">
-            SELECT
-                id
-                ,name
-            FROM category
-            WHERE name LIKE CONCAT('%', #{keyword}, '%')
-                OR id LIKE CONCAT('%', #{keyword}, '%')
-            ORDER BY created_at DESC
-        </select>
+    <select id="searchCategoryByKeywordXml" parameterType="string" resultMap="categoryResultMap">
+        SELECT
+            id
+            , name
+            , created_at
+            , created_by
+            , modified_at
+            , modified_by
+        FROM category
+        WHERE UPPER(name) LIKE CONCAT('%', UPPER(#{keyword}), '%')
+            OR UPPER(id) LIKE CONCAT('%', UPPER(#{keyword}), '%')
+        ORDER BY created_at DESC
+    </select>
 </mapper>

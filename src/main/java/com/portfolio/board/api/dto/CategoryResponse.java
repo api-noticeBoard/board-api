@@ -5,6 +5,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Getter
 @NoArgsConstructor
 public class CategoryResponse {
@@ -14,8 +16,24 @@ public class CategoryResponse {
     @Schema(description = "카테고리명")
     private String name;
 
+    @Schema(description = "생성시간")
+    private LocalDateTime createdAt;
+
+    @Schema(description = "생성자")
+    private String createdBy;
+
+    @Schema(description = "수정시간")
+    private LocalDateTime modifiedAt;
+
+    @Schema(description = "수정자")
+    private String modifiedBy;
+
     public CategoryResponse(Category category){
         this.id = category.getId();
         this.name = category.getName();
+        this.createdAt = category.getCreatedAt();
+        this.createdBy = category.getCreatedBy();
+        this.modifiedAt = category.getModifiedAt();
+        this.modifiedBy = category.getModifiedBy();
     }
 }

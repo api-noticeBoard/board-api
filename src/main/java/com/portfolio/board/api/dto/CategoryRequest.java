@@ -9,7 +9,7 @@ import lombok.Setter;
 public class CategoryRequest {
 
     @Getter @Setter
-    public static class Create{
+    public static class CategoryCreate{
         @NotBlank(message = "카테고리 이름은 비어 있을 수 없습니다.")
         @Size(max = 20, message = "카테고리 이름은 20자를 넘을 수 없습니다.")
         private String name;
@@ -23,7 +23,7 @@ public class CategoryRequest {
     }
 
     @Getter @Setter
-    public static class Update{
+    public static class CategoryUpdate{
         @NotBlank(message = "카테고리 이름은 비어 있을 수 없습니다.")
         @Size(max = 20, message = "카테고리 이름은 20자를 넘을 수 없습니다.")
         private String name;

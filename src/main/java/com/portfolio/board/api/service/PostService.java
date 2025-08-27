@@ -3,14 +3,19 @@ package com.portfolio.board.api.service;
 import com.portfolio.board.api.domain.Category;
 import com.portfolio.board.api.domain.Post;
 import com.portfolio.board.api.dto.PostRequest;
+import com.portfolio.board.api.dto.PostResponse;
 import com.portfolio.board.api.mapper.PostMapper;
 import com.portfolio.board.api.repository.CategoryRepository;
 import com.portfolio.board.api.repository.PostRepository;
 import com.portfolio.common.system.exception.BusinessException;
 import com.portfolio.common.system.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
+import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -22,6 +27,43 @@ public class PostService {
     private final PostMapper postMapper;
 
     /**
+     * 게시글 keyword 검색
+     * @param keyword   검색 keyword
+     * @return          카테고리 응답 데이터 리턴.
+     */
+    @Transactional(readOnly = true)
+    public List<PostResponse> searchPostByKeywordXml(@Param("keyword") String keyword){
+        return postMapper.searchPostByKeywordXml(keyword);
+    }
+
+    /**
+     * 게시물ID로 단건조회
+     *
+     * @param postId 게시물ID
+     * @return       응답 데이터 리턴.
+     */
+    @Transactional(readOnly = true)
+    public PostResponse getPostById(@Param("postId") Long postId){
+        Post post = postRepo.findById(postId)
+                .orElseThrow(()-> new BusinessException(ErrorCode.POST_NOT_FOUND));
+
+        return new PostResponse(post);
+    }
+
+
+    /**
+     * 게시글 전체조회
+     *
+     * @return  전체 List 데이터
+     */
+    @Transactional(readOnly = true)
+    public List<PostResponse> getAllPosts(){
+        return postRepo.findAll().stream()
+                .map(PostResponse::new)
+                .collect(Collectors.toList());
+    }
+
+    /**
      * 새로운 게시글을 생성합니다.
      *
      * @param postDto 게시글 생성을 위한 요청 데이터.
@@ -31,7 +73,7 @@ public class PostService {
      *                데이터 일관성을 보장합니다.
      */
     @Transactional
-    public Long createPost(PostRequest.Create postDto) {
+    public Long createPost(PostRequest.PostCreate postDto) {
 
         // 1. 카테고리가 존재하는지 확인합니다.
         //    orElseThrow를 사용하여 카테고리가 없으면 BusinessException을 던집니다.
@@ -61,7 +103,7 @@ public class PostService {
      * @return          게시물 ID 리턴
      */
     @Transactional
-    public Long updatePost(Long postId, PostRequest.Create postDto){
+    public Long updatePost(Long postId, PostRequest.PostUpdate postDto){
 
         // ID로 기존 게시물 존재 체크
         Post post = postRepo.findById(postId)
