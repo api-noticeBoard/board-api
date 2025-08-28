@@ -69,6 +69,14 @@ dependencies {
 	// 유효성 검증
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
 
+	// -- JWT 라이브러리 추가 --
+	// JWT를 생성하고 검증하기 위한 핵심 라이브러리
+	implementation 'io.jsonwebtoken:jjwt-api:0.12.3'
+	// JWT 서명 알고리즘(e.g., HS256)을 구현한 런타임 라이브러리
+	runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.3'
+	// JWT를 JSON으로 변환하거나 그 반대를 위해 필요한 Jackson 라이브러리
+	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.3'
+
 	// 공통 라이브러리
 	implementation 'com.portfolio.common:system:0.0.1-SNAPSHOT'
 	implementation 'com.portfolio.common:business:0.0.1-SNAPSHOT'

@@ -26,3 +26,10 @@ springdoc:
   api-docs:
     path: /v1/api
   packages-to-scan: com.portfolio.board
+
+jwt:
+  secret: # 개인 포트폴리오 프로젝트
+    key: b3c05a51c351a2b80ec78f94db67b6029b62bf865437b58698771385e4b0d1a5
+  token:
+    expire:
+      milliseconds: 3600000 # 1시간 (60 * 60 * 1000)

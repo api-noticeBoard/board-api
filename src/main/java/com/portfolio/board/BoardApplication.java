@@ -5,7 +5,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
-@EnableJpaAuditing	// JPA Auditing 활성화
+//@EnableJpaAuditing	// JPA Auditing 활성화
 @SpringBootApplication(scanBasePackages = "com.portfolio")
 public class BoardApplication {
 

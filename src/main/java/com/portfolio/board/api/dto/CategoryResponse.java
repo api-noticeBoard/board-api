@@ -20,13 +20,13 @@ public class CategoryResponse {
     private LocalDateTime createdAt;
 
     @Schema(description = "생성자")
-    private String createdBy;
+    private Long createdBy;
 
     @Schema(description = "수정시간")
     private LocalDateTime modifiedAt;
 
     @Schema(description = "수정자")
-    private String modifiedBy;
+    private Long modifiedBy;
 
     public CategoryResponse(Category category){
         this.id = category.getId();

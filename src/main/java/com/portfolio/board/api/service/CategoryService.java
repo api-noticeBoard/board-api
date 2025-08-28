@@ -84,15 +84,18 @@ public class CategoryService {
     @Transactional
     public Long createCategory(CategoryRequest.CategoryCreate categoryDto){
 
-        Optional<Category> category = categoryRepo.findByName(categoryDto.getName());
-
         if (categoryRepo.findByName(categoryDto.getName()).isPresent()) {
             throw new BusinessException(ErrorCode.CATEGORY_NAME_DUPLICATIED);
         }
 
-        Category saveCategory = categoryRepo.save(categoryDto.toEntity());
+        // ✨ 수정된 부분: 정적 팩토리 메서드를 사용하여 엔티티를 생성합니다.
+        Category newCategory = Category.create(categoryDto.getName());
 
-        return saveCategory.getId();
+        // JPA save가 호출되는 시점에, newCategory 객체에 Auditing 기능이 적용되어
+        // createdBy, createdAt 필드가 채워진 후 DB에 INSERT 됩니다.
+        Category savedCategory = categoryRepo.save(newCategory);
+
+        return savedCategory.getId();
     }
 
     /**
@@ -121,7 +124,7 @@ public class CategoryService {
         }
         if (categoryDto.getName().isBlank()) throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE, "카테고리 명을 입력해주세요.");
         // Entity 업데이트
-        category.setName(categoryDto.getName());
+        category.updateName(category.getName());
 
         return new CategoryResponse(category);
     }

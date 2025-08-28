@@ -40,5 +40,5 @@ spring:
 # dev 환경에서는 Swagger UI를 활성화합니다.
 springdoc:
   swagger-ui:
-    path: /swagger
+    path: /swagger-ui
     enabled: true

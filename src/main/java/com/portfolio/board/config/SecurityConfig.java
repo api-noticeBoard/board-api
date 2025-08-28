@@ -5,6 +5,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.crypto.factory.PasswordEncoderFactories;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
@@ -30,8 +32,9 @@ public class SecurityConfig {
                         // Swagger UI 관련 경로도 허용합니다.
                         // ▼▼▼ yml 파일에 설정된 경로(/v1/api)를 추가합니다. ▼▼▼
                         .requestMatchers(
-                                "/swagger-ui/**"
+                                "/api/auth/**"
                                 , "/swagger/**"
+                                , "/swagger-ui/**"
                                 , "/v1/api/**").permitAll()
                         // 개발 편의를 위해 API 경로 전체를 임시로 허용하는 규칙 추가
                         .requestMatchers("/api/**").permitAll()
@@ -40,5 +43,21 @@ public class SecurityConfig {
                 );
 
         return http.build();
+    }
+
+    /**
+     * ✨ [해결 코드] PasswordEncoder를 빈으로 등록합니다.
+     * 이 빈이 등록되어 있어야 Spring이 필요한 곳(AuthController, UserService 등)에
+     * PasswordEncoder를 주입해줄 수 있습니다.
+     *
+     * PasswordEncoderFactories.createDelegatingPasswordEncoder()는
+     * 다양한 암호화 알고리즘을 지원하며, 비밀번호 앞에 {bcrypt}, {noop} 등을 붙여
+     * 어떤 알고리즘으로 암호화되었는지 명시할 수 있는 최신 방식의 PasswordEncoder입니다.
+     * 기본적으로는 BCrypt를 사용합니다.
+     * @return PasswordEncoder 구현체
+     */
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return PasswordEncoderFactories.createDelegatingPasswordEncoder();
     }
 }
