@@ -7,6 +7,7 @@ import com.portfolio.common.system.exception.BusinessException;
 import com.portfolio.common.system.exception.ErrorCode;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import java.net.URI;
 import java.util.List;
 
+@Tag(name = "Post", description = "게시글 관련 API")
 @RestController
 @RequestMapping("/api/v1/posts")
 @RequiredArgsConstructor

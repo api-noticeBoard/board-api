@@ -44,26 +44,14 @@ public class Category extends BaseEntity {
     @OneToMany(mappedBy = "parent")
     private List<Category> children = new ArrayList<>();
 
-    @Builder
-    public Category(String name, Category parent){
-        this.name = name;
-        this.parent = parent;
-    }
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "createdBy", referencedColumnName = "id", insertable = false, updatable = false)
     private Member author; // '작성자'라는 의미의 필드 추가
 
-    /**
-     * Category 엔티티를 생성하기 위한 정적 팩토리 메서드입니다.
-     * 생성 시점에는 'name'만 필요하다는 비즈니스 규칙을 명확히 합니다.
-     * @param name 생성할 카테고리의 이름
-     * @return name 필드가 설정된 새로운 Category 객체
-     */
-    public static Category create(String name) {
-        Category category = new Category();
-        category.name = name;
-        return category;
+    @Builder
+    public Category(String name, Category parent){
+        this.name = name;
+        this.parent = parent;
     }
 
     /**

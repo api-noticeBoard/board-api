@@ -47,7 +47,7 @@ public class CategoryService {
         Category category = categoryRepo.findByName(categoryName)
                 .orElseThrow(()-> new BusinessException(ErrorCode.CATEGORY_NOT_FOUND));
 
-        return new CategoryResponse(category);
+        return new CategoryResponse();
     }
 
     /**
@@ -77,19 +77,29 @@ public class CategoryService {
 
     /**
      * 새로운 카테고리 생성.
+     * 부모 ID가 있는 경우, 해당 부모의 하위 카테고리로 생성.
      *
      * @param categoryDto 카테고리 요청 데이터.
      * @return            카테고리 ID 리턴.
      */
     @Transactional
-    public Long createCategory(CategoryRequest.CategoryCreate categoryDto){
+    public Long createCategory(CategoryRequest.create categoryDto){
 
         if (categoryRepo.findByName(categoryDto.getName()).isPresent()) {
             throw new BusinessException(ErrorCode.CATEGORY_NAME_DUPLICATIED);
         }
 
+        Category parent = null;
+        if (categoryDto.getParentId() != null){
+            parent = categoryRepo.findById(categoryDto.getParentId())
+                    .orElseThrow(()-> new BusinessException(ErrorCode.CATEGORY_NOT_FOUND));
+        }
+
         // ✨ 수정된 부분: 정적 팩토리 메서드를 사용하여 엔티티를 생성합니다.
-        Category newCategory = Category.create(categoryDto.getName());
+        Category newCategory = Category.builder()
+                .name(categoryDto.getName())
+                .parent(parent)
+                .build();
 
         // JPA save가 호출되는 시점에, newCategory 객체에 Auditing 기능이 적용되어
         // createdBy, createdAt 필드가 채워진 후 DB에 INSERT 됩니다.
@@ -106,7 +116,7 @@ public class CategoryService {
      * @return              카테고리 ID 리턴.
      */
     @Transactional
-    public CategoryResponse updateCategory(Long categoryId, CategoryRequest.CategoryUpdate categoryDto){
+    public CategoryResponse updateCategory(Long categoryId, CategoryRequest.update categoryDto){
 
         // 수정할 카테고리 존재 확인
         Category category = categoryRepo.findById(categoryId)

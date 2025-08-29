@@ -24,7 +24,7 @@ openapi:
 # Springdoc 공통 설정: API 문서의 경로, 스캔할 패키지 등은 모든 환경에서 동일합니다.
 springdoc:
   api-docs:
-    path: /v1/api
+    path: /api/v1
   packages-to-scan: com.portfolio.board
 
 jwt:

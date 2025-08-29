@@ -1,11 +1,15 @@
 package com.portfolio.board.api.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.portfolio.board.api.domain.Category;
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @NoArgsConstructor
@@ -35,5 +39,16 @@ public class CategoryResponse {
         this.createdBy = category.getCreatedBy();
         this.modifiedAt = category.getModifiedAt();
         this.modifiedBy = category.getModifiedBy();
+    }
+
+    @Getter
+    @Setter // MyBatis가 값을 주입할 수 있도록 Setter 추가
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @JsonInclude(JsonInclude.Include.NON_EMPTY) // 비어있는 리스트는 JSON 응답에서 제외
+    public static class CategoryTreeResponse {
+        private Long id;
+        private String name;
+        private List<CategoryTreeResponse> children;
     }
 }

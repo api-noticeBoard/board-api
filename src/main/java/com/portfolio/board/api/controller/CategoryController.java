@@ -7,6 +7,7 @@ import com.portfolio.common.system.exception.BusinessException;
 import com.portfolio.common.system.exception.ErrorCode;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import java.net.URI;
 import java.util.List;
 
+@Tag(name = "Category", description = "카테고리 관련 API")
 @RestController
 @RequestMapping("/api/v1/categories")
 @RequiredArgsConstructor
@@ -65,7 +67,7 @@ public class CategoryController {
      */
     @PostMapping
     @Operation(summary = "카테고리 생성", description = "새로운 카테고리 생성")
-    public ResponseEntity<Void> createCategory(@Valid @RequestBody CategoryRequest.CategoryCreate categoryDto){
+    public ResponseEntity<Void> createCategory(@Valid @RequestBody CategoryRequest.create categoryDto){
         Long categoryId = categoryService.createCategory(categoryDto);
 
         // RESTful API 원칙에 따라, 생성된 리소스에 접근할 수 있는 URI를
@@ -84,7 +86,7 @@ public class CategoryController {
     @PutMapping("/{categoryId}")
     @Operation(summary = "카테고리 수정", description = "카테고리ID로 수정")
     public ResponseEntity<CategoryResponse> updateCategory(@Parameter(description = "수정할 카테고리ID", example = "1")
-                                               @PathVariable Long categoryId, @Valid @RequestBody CategoryRequest.CategoryUpdate requestDto){
+                                               @PathVariable Long categoryId, @Valid @RequestBody CategoryRequest.update requestDto){
         CategoryResponse categoryResponse = categoryService.updateCategory(categoryId, requestDto);
 
         return ResponseEntity.ok().build();
