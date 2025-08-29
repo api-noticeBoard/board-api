@@ -40,6 +40,24 @@ public class Member extends BaseEntity {
     @Column(name = "role")
     private List<String> roles = new ArrayList<>();
 
+    /**
+     * 사용자 이름을 변경합니다. (Setter 대신 이 메서드를 사용)
+     * 서비스 계층에서는 이 메서드를 호출하여 엔티티의 상태 변경을 위임합니다.
+     * @param newName 새로운 이름
+     */
+    public void changeName(String newName) {
+        this.name = newName;
+    }
+
+    /**
+     * ✨ [추가된 부분] 비밀번호를 변경합니다.
+     * 비밀번호는 반드시 암호화된 상태로 전달받아야 합니다.
+     * @param newPassword 암호화된 새 비밀번호
+     */
+    public void changePassword(String newPassword) {
+        this.password = newPassword;
+    }
+
     // 빌더 패턴을 사용하여 객체를 안전하고 명확하게 생성할 수 있도록 합니다.
     @Builder
     public Member(String username, String password, String name, List<String> roles) {

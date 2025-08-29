@@ -2,8 +2,6 @@ package com.portfolio.board.api.service;
 
 import com.portfolio.board.api.domain.Member;
 import com.portfolio.board.api.repository.MemberRepository;
-import com.portfolio.common.system.exception.BusinessException;
-import com.portfolio.common.system.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;

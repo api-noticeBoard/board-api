@@ -1,46 +1,77 @@
 package com.portfolio.board.config;
 
+import com.portfolio.board.config.filter.JwtAuthenticationFilter;
+import com.portfolio.board.config.jwt.JwtProvider;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
+
+    private final JwtProvider jwtProvider;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                // 1. CSRF(Cross-Site Request Forgery) 보호를 비활성화합니다.
-                //    H2 콘솔은 CSRF 토큰을 사용하지 않으므로 비활성화해야 접근 가능합니다.
-                //    실제 운영 환경에서는 API 성격에 맞게 선택적으로 적용해야 합니다.
+                // [1] 불필요한 인증 방식 비활성화
+                // REST API 서버는 토큰 기반 인증을 사용하므로, HttpSession을 생성하는 formLogin과 httpBasic 인증 방식을 사용하지 않습니다.
+                .formLogin(AbstractHttpConfigurer::disable)
+                .httpBasic(AbstractHttpConfigurer::disable)
+
+                // [2] CSRF(Cross-Site Request Forgery) 보호 비활성화
+                // 세션을 사용하지 않는 STATELESS 방식에서는 CSRF 공격에 비교적 안전하므로 비활성화합니다.
                 .csrf(AbstractHttpConfigurer::disable)
+
+                // [3] 세션 관리 정책을 STATELESS로 설정
+                // 가장 중요한 설정 중 하나입니다. 서버가 클라이언트의 상태를 저장하지 않도록 하여,
+                // 모든 요청이 토큰을 통해 독립적으로 인증되도록 강제합니다.
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+
+                // [4] 익명 인증(Anonymous Authentication) 비활성화
+                // JwtAuthenticationFilter가 인증 정보를 처리한 후, AnonymousAuthenticationFilter가
+                // 이를 덮어쓰는 문제를 방지하기 위해 비활성화합니다.
+                .anonymous(AbstractHttpConfigurer::disable)
+
+                // [5] H2 콘솔 및 Swagger UI를 위한 프레임 옵션 허용 (개발 환경용)
                 .headers(headers -> headers
-                        .frameOptions(frameOptions -> frameOptions.disable())
+                        .frameOptions(frameOptions -> frameOptions.sameOrigin()) // H2 콘솔은 iframe을 사용하므로 허용
                 )
-                // 2. HTTP 요청에 대한 접근 권한을 설정합니다.
+
+                // [6] HTTP 요청에 대한 인가(Authorization) 규칙 설정
+                // 규칙은 구체적인 경로를 먼저, 넓은 범위를 나중에 선언해야 합니다.
                 .authorizeHttpRequests(auth -> auth
-                        // "/h2-console/**" 경로의 모든 요청은 인증 없이 허용(permitAll)합니다.
+                        // (6-1) 아래 경로들은 인증 여부와 상관없이 '누구나' 접근을 허용합니다. (permitAll)
                         .requestMatchers(
-                                "/h2-console/**"
-                                , "/favicon.ico").permitAll()
-                        // Swagger UI 관련 경로도 허용합니다.
-                        // ▼▼▼ yml 파일에 설정된 경로(/v1/api)를 추가합니다. ▼▼▼
-                        .requestMatchers(
-                                "/api/auth/**"
-                                , "/swagger/**"
-                                , "/swagger-ui/**"
-                                , "/v1/api/**").permitAll()
-                        // 개발 편의를 위해 API 경로 전체를 임시로 허용하는 규칙 추가
-                        .requestMatchers("/api/**").permitAll()
-                        // 그 외 나머지 모든 요청은 반드시 인증(로그인)을 거쳐야 합니다.
+                                "/api/auth/**",      // 회원가입, 로그인 API
+                                "/swagger-ui/**",    // Swagger UI 페이지
+//                                "/v3/api-docs/**",   // Swagger API 문서
+                                "/v1/api/**",         // application.yml에 맞게 수정
+                                "/h2-console/**",    // H2 데이터베이스 콘솔
+                                "/favicon.ico"
+                        ).permitAll()
+
+                        // (6-2) '/api/admin/**' 패턴의 경로는 'ADMIN' 역할을 가진 사용자만 접근을 허용합니다.
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/member/**").authenticated()
+
+                        // (6-3) 위에서 정의한 경로 외의 '모든' 나머지 요청은 '반드시 인증'을 거쳐야만 접근을 허용합니다.
                         .anyRequest().authenticated()
-                );
+                )
+                // [7] 직접 구현한 JwtAuthenticationFilter를 Spring Security 필터 체인에 추가
+                // UsernamePasswordAuthenticationFilter (Spring의 기본 로그인 처리 필터) 보다 먼저 실행되도록 설정하여,
+                // JWT 토큰 검증이 로그인 처리보다 우선적으로 이루어지게 합니다.
+                .addFilterBefore(new JwtAuthenticationFilter(jwtProvider), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

@@ -17,22 +17,13 @@ public class PostDetailResponse {
     private final String authorName; // ✨ 사용자 ID(Long)가 아닌, 사용자 이름(String)
     private final LocalDateTime createdAt;
 
-    // Post 엔티티를 DTO로 변환하는 생성자
+    // ✨ 이제 이 생성자 하나만으로 JPA와 MyBatis 모두를 커버할 수 있습니다.
     public PostDetailResponse(Post post) {
         this.postId = post.getId();
         this.title = post.getTitle();
         this.content = post.getContent();
-        // ✨ 연관된 author(Member) 객체에서 이름을 꺼내 DTO 필드에 할당
-        this.authorName = post.getAuthor().getName();
+        // author가 null일 수 있는 경우(LEFT JOIN)를 대비하여 null 체크 추가
+        this.authorName = (post.getAuthor() != null) ? post.getAuthor().getName() : "작성자 없음";
         this.createdAt = post.getCreatedAt();
-    }
-
-    // MyBatis용 생성자 (필요 시)
-    public PostDetailResponse(Long postId, String title, String content, String authorName, LocalDateTime createdAt) {
-        this.postId = postId;
-        this.title = title;
-        this.content = content;
-        this.authorName = authorName;
-        this.createdAt = createdAt;
     }
 }

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.portfolio.board.api.mapper.MemberMapper">
+    <resultMap id="categoryResultMap" type="com.portfolio.board.api.domain.Member">
+        <id property="id" column="id"/>
+        <result property="username" column="username"/>
+        <result property="password" column="password"/>
+        <result property="name" column="name"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="createdBy" column="created_by"/>
+        <result property="modifiedAt" column="modified_at"/>
+        <result property="modifiedBy" column="modified_by"/>
+        <!--
+            1:N 관계(컬렉션)를 매핑하는 <collection> 태그입니다.
+            property="roles": Member 엔티티 내부에 있는 List<String> 타입의 필드 이름
+            ofType="java.lang.String": 컬렉션(List)에 담길 요소의 타입. 여기서는 String.
+        -->
+        <collection property="roles" ofType="java.lang.String">
+            <!--
+                member_roles 테이블에서 가져온 'role' 컬럼의 값을
+                String 타입으로 만들어서 위의 'roles' 리스트에 추가합니다.
+            -->
+            <result column="role"/>
+        </collection>
+    </resultMap>
+</mapper>
