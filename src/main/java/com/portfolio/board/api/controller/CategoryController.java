@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
@@ -23,6 +24,14 @@ public class CategoryController {
 
     private final CategoryService categoryService;
 
+    @GetMapping("/tree")
+    @Operation(summary = "전체 tree형식 카테고리 조회", description = "전체 tree형식 카테고리 조회")
+    public ResponseEntity<List<CategoryDto.TreeResponse>> searchTreeCategory(){
+
+        List<CategoryDto.TreeResponse> treeResponse = categoryService.searchAllTreeCategory();
+
+        return ResponseEntity.ok(treeResponse);
+    }
     /**
      * keywod 검색
      *
@@ -49,7 +58,7 @@ public class CategoryController {
      * @param categoryId 카테고리ID
      * @return           카테고리 응답 데이터 리턴.
      */
-    @GetMapping("/{categoryId}")
+    @GetMapping("/search/{categoryId}")
     @Operation(summary = "카테고리 단건 조회", description = "카테고리 ID로 단건 조회")
     public ResponseEntity<CategoryDto.Response> getCategoryById(@PathVariable Long categoryId) { // ✨ DTO 타입 수정
         return ResponseEntity.ok(categoryService.getCategoryById(categoryId));

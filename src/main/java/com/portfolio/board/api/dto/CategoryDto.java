@@ -37,6 +37,8 @@ public class CategoryDto {
         @Size(max = 20, message = "이름은 20자를 넘을 수 없습니다.")
         @Schema(description = "수정할 카테고리 이름", example = "JPA")
         private String name;
+        @Schema(description = "부모 카테고리 ID (최상위일 경우 null)", example = "97")
+        private Long parentId;
     }
 
     // --- 응답(Response) DTOs ---
@@ -50,9 +52,11 @@ public class CategoryDto {
         @Schema(description = "이름") private String name;
         @Schema(description = "부모 ID") private Long parentId;
         @Schema(description = "생성일") private LocalDateTime createdAt;
-        @Schema(description = "생성자") private Long createdBy;
+//        @Schema(description = "생성자") private Long createdBy;
         @Schema(description = "수정일") private LocalDateTime modifiedAt;
-        @Schema(description = "수정자") private Long modifiedBy;
+//        @Schema(description = "수정자") private Long modifiedBy;
+        @Schema(description = "작성자명") private String createdByName;
+        @Schema(description = "수정자명") private String modifiedByName;
 
         public static Response from(Category category) {
             return Response.builder()
@@ -60,15 +64,16 @@ public class CategoryDto {
                     .name(category.getName())
                     .parentId(category.getParent() != null ? category.getParent().getId() : null)
                     .createdAt(category.getCreatedAt())
-                    .createdBy(category.getCreatedBy())
+//                    .createdBy(category.getCreatedBy())
                     .modifiedAt(category.getModifiedAt())
-                    .modifiedBy(category.getModifiedBy())
+//                    .modifiedBy(category.getModifiedBy())
                     .build();
         }
     }
 
-    @Getter
+    @Getter @ Setter
     @Builder
+    @NoArgsConstructor
     @AllArgsConstructor(access = AccessLevel.PRIVATE)
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public static class TreeResponse {

@@ -63,4 +63,12 @@ public class Category extends BaseEntity {
     public void updateName(String newName) {
         this.name = newName;
     }
+
+    /**
+     * ✨ [추가] 부모 카테고리를 변경하는 비즈니스 메서드.
+     * @param newParent 새로운 부모 카테고리 (최상위로 만들려면 null 전달)
+     */
+    public void changeParent(Category newParent) {
+        this.parent = newParent;
+    }
 }

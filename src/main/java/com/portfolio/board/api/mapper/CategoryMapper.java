@@ -9,4 +9,10 @@ import java.util.List;
 @Mapper
 public interface CategoryMapper {
     List<CategoryDto.Response> searchCategoryByKeywordXml(@Param("keyword") String keyword);
+
+    List<CategoryDto.TreeResponse> findCategoryTree();
+
+    CategoryDto.Response findByName(String categoryName);
+
+    CategoryDto.Response findById(Long categoryId);
 }

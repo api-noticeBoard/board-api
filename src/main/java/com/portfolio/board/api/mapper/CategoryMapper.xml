@@ -7,31 +7,116 @@
         <result property="name" column="name"/>
         <result property="parentId" column="parent_id"/>
         <result property="createdAt" column="created_at"/>
-        <result property="createdBy" column="created_by"/>
         <result property="modifiedAt" column="modified_at"/>
-        <result property="modifiedBy" column="modified_by"/>
-<!--        <collection  property="children" javaType="com.portfolio.board.api.domain.Category">-->
-<!--            <id property="id" column="child_id"/>-->
-<!--            <result property="name" column="child_name"/>-->
-<!--            <result property="createdAt" column="child_created_at"/>-->
-<!--            <result property="createdBy" column="child_created_by"/>-->
-<!--            <result property="modifiedAt" column="child_modified_at"/>-->
-<!--            <result property="modifiedBy" column="child_modified_by"/>-->
-<!--        </collection >-->
+        <result property="createdByName" column="created_by_Name"/>
+        <result property="modifiedByName" column="modified_by_Name"/>
+    </resultMap>
+    <!-- ========== 계층 구조(트리) 조회용 resultMap 및 재귀 쿼리 ========== -->
+    <!--
+        findChildrenByParentId select 쿼리를 재귀로 만들어 collection에 넣어줌
+        MyBatis가 그룹핑을 통해 계층 구조를 자동으로 조립해 줍니다.
+    -->
+    <resultMap id="categoryTreeResultMap" type="com.portfolio.board.api.dto.CategoryDto$TreeResponse">
+        <id property="id" column="id"/>
+        <result property="name" column="name"/>
+        <collection property="children" ofType="com.portfolio.board.api.dto.CategoryDto$TreeResponse"
+                    column="id" select="findChildrenByParentId">
+            <id property="id" column="child_id"/>
+            <result property="name" column="child_name"/>
+        </collection>
     </resultMap>
 
+    <select id="findCategoryTree" resultMap="categoryTreeResultMap">
+        SELECT
+            id,
+            name
+        FROM category
+        WHERE
+            parent_id IS NULL
+        ORDER BY
+            id ASC
+    </select>
+    <select id="findChildrenByParentId" resultMap="categoryTreeResultMap">
+        SELECT
+            id,
+            name
+        FROM category
+        WHERE
+            parent_id = #{parentId}
+        ORDER BY
+            id ASC
+    </select>
+<!--    <select id="findCategoryTree" resultType="java.util.Map">-->
+<!--        WITH RECURSIVE category_path (id, name, parent_id, path, level) AS (-->
+<!--        SELECT-->
+<!--        id,-->
+<!--        name,-->
+<!--        parent_id,-->
+<!--        CAST(name AS VARCHAR(255)) AS path,-->
+<!--        1 AS level-->
+<!--        FROM-->
+<!--        category-->
+<!--        WHERE-->
+<!--        parent_id IS NULL-->
+<!--        UNION ALL-->
+<!--        SELECT-->
+<!--        c.id,-->
+<!--        c.name,-->
+<!--        c.parent_id,-->
+<!--        cp.path || ' > ' || c.name,-->
+<!--        cp.level + 1-->
+<!--        FROM-->
+<!--        category c-->
+<!--        INNER JOIN-->
+<!--        category_path cp ON c.parent_id = cp.id-->
+<!--        )-->
+<!--        SELECT * FROM category_path ORDER BY path, level;-->
+<!--    </select>-->
     <select id="searchCategoryByKeywordXml" parameterType="string" resultMap="categoryResultMap">
         SELECT
             a.id
             , a.name
             , a.created_at
-            , a.created_by
             , a.modified_at
-            , a.modified_by
             , a.parent_id
+            , b.name            AS created_by_Name
+            , c.name            AS modified_by_Name
         FROM category a
+        LEFT JOIN MEMBER b ON a.created_by = b.id
+        LEFT JOIN MEMBER c ON a.modified_by = c.id
         WHERE UPPER(a.name) LIKE CONCAT('%', UPPER(#{keyword}), '%')
             OR UPPER(a.id) LIKE CONCAT('%', UPPER(#{keyword}), '%')
         ORDER BY a.created_at DESC
     </select>
+    <select id="findByName" parameterType="string" resultMap="categoryResultMap">
+        SELECT
+        a.id
+        , a.name
+        , a.created_at
+        , a.modified_at
+        , a.parent_id
+        , b.name            AS created_by_Name
+        , c.name            AS modified_by_Name
+        FROM category a
+        LEFT JOIN MEMBER b ON a.created_by = b.id
+        LEFT JOIN MEMBER c ON a.modified_by = c.id
+        WHERE UPPER(a.name) LIKE CONCAT('%', UPPER(#{categoryName}), '%')
+        ORDER BY a.created_at DESC
+    </select>
+    <select id="findById" parameterType="Long" resultMap="categoryResultMap">
+        SELECT
+        a.id
+        , a.name
+        , a.created_at
+        , a.modified_at
+        , a.parent_id
+        , b.name            AS created_by_Name
+        , c.name            AS modified_by_Name
+        FROM category a
+        LEFT JOIN MEMBER b ON a.created_by = b.id
+        LEFT JOIN MEMBER c ON a.modified_by = c.id
+        WHERE a.id = #{categoryId}
+        ORDER BY a.created_at DESC
+    </select>
+
 </mapper>
