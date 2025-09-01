@@ -56,14 +56,14 @@ public class SecurityConfig {
                                 "/api/auth/**",      // 회원가입, 로그인 API
                                 "/swagger-ui/**",    // Swagger UI 페이지
 //                                "/v3/api-docs/**",   // Swagger API 문서
-                                "/v1/api/**",         // application.yml에 맞게 수정
+                                "/api/v1/**",         // application.yml에 맞게 수정
                                 "/h2-console/**",    // H2 데이터베이스 콘솔
                                 "/favicon.ico"
                         ).permitAll()
 
                         // (6-2) '/api/admin/**' 패턴의 경로는 'ADMIN' 역할을 가진 사용자만 접근을 허용합니다.
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                        .requestMatchers("/api/member/**").authenticated()
+                        .requestMatchers("/api/v1/member/**").authenticated()
 
                         // (6-3) 위에서 정의한 경로 외의 '모든' 나머지 요청은 '반드시 인증'을 거쳐야만 접근을 허용합니다.
                         .anyRequest().authenticated()

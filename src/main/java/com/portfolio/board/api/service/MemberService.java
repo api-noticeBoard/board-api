@@ -1,26 +1,17 @@
 package com.portfolio.board.api.service;
 
 import com.portfolio.board.api.controller.AuthController;
-import com.portfolio.board.api.domain.Category;
 import com.portfolio.board.api.domain.Member;
-import com.portfolio.board.api.dto.CategoryRequest;
-import com.portfolio.board.api.dto.CategoryResponse;
 import com.portfolio.board.api.dto.MemberRequest;
 import com.portfolio.board.api.dto.MemberResponse;
-import com.portfolio.board.api.mapper.CategoryMapper;
-import com.portfolio.board.api.repository.CategoryRepository;
 import com.portfolio.board.api.repository.MemberRepository;
-import com.portfolio.common.system.exception.BusinessException;
-import com.portfolio.common.system.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
-import org.apache.ibatis.annotations.Param;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service

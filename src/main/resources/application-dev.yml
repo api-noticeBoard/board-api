@@ -21,7 +21,7 @@ spring:
   datasource:
     # TODO: DB서버로 변경 예정
     # 로컬 개발 시 재시작해도 데이터가 유지되도록 파일 기반 H2를 사용합니다.
-    url: jdbc:h2:file:./data/h2demo
+    url: jdbc:h2:file:./data/h2demo;AUTO_SERVER=TRUE
     driver-class-name: org.h2.Driver
     username: sa
     password:

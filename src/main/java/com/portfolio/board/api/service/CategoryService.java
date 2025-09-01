@@ -1,20 +1,15 @@
 package com.portfolio.board.api.service;
 
 import com.portfolio.board.api.domain.Category;
-import com.portfolio.board.api.dto.CategoryRequest;
-import com.portfolio.board.api.dto.CategoryResponse;
+import com.portfolio.board.api.dto.CategoryDto;
 import com.portfolio.board.api.mapper.CategoryMapper;
 import com.portfolio.board.api.repository.CategoryRepository;
-import com.portfolio.board.exam.dto.ExamDto;
 import com.portfolio.common.system.exception.BusinessException;
 import com.portfolio.common.system.exception.ErrorCode;
-import io.swagger.v3.oas.annotations.Parameter;
 import lombok.RequiredArgsConstructor;
 import org.apache.ibatis.annotations.Param;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.List;
 import java.util.Optional;
@@ -28,12 +23,12 @@ public class CategoryService {
     private final CategoryMapper categoryMapper;
 
     /**
-     * 카테고리 keyword 검색
+     * 카테고리 keyword 검색 (MyBatis)
      * @param keyword   검색 keyword
      * @return          카테고리 응답 데이터 리턴.
      */
     @Transactional(readOnly = true)
-    public List<CategoryResponse> searchCategoryByKeywordXml(@Param("keyword") String keyword){
+    public List<CategoryDto.Response> searchCategoryByKeywordXml(@Param("keyword") String keyword){
         return categoryMapper.searchCategoryByKeywordXml(keyword);
     }
 
@@ -43,11 +38,11 @@ public class CategoryService {
      * @return     카테고리 응답 데이터 리턴.
      */
     @Transactional(readOnly = true)
-    public CategoryResponse getCategoryByName(String categoryName){
+    public CategoryDto.Response getCategoryByName(String categoryName){
         Category category = categoryRepo.findByName(categoryName)
                 .orElseThrow(()-> new BusinessException(ErrorCode.CATEGORY_NOT_FOUND));
 
-        return new CategoryResponse(category);
+        return CategoryDto.Response.from(category);
     }
 
     /**
@@ -56,11 +51,11 @@ public class CategoryService {
      * @return     카테고리 응답 데이터 리턴.
      */
     @Transactional(readOnly = true)
-    public CategoryResponse getCategoryById(Long categoryId){
+    public CategoryDto.Response getCategoryById(Long categoryId){
         Category category = categoryRepo.findById(categoryId)
                 .orElseThrow(()-> new BusinessException(ErrorCode.CATEGORY_NOT_FOUND));
 
-        return new CategoryResponse(category);
+        return CategoryDto.Response.from(category);
     }
 
     /**
@@ -69,64 +64,58 @@ public class CategoryService {
      * @return  전체 List 데이터
      */
     @Transactional(readOnly = true)
-    public List<CategoryResponse> getAllCategories(){
+    public List<CategoryDto.Response> getAllCategories(){
         return categoryRepo.findAll().stream()
-                .map(CategoryResponse::new)
+                .map(CategoryDto.Response::from)
                 .collect(Collectors.toList());
     }
 
-    /**
-     * 새로운 카테고리 생성.
-     *
-     * @param categoryDto 카테고리 요청 데이터.
-     * @return            카테고리 ID 리턴.
-     */
     @Transactional
-    public Long createCategory(CategoryRequest.CategoryCreate categoryDto){
-
-        if (categoryRepo.findByName(categoryDto.getName()).isPresent()) {
+    public Long createCategory(CategoryDto.CreateRequest requestDto) { // ✨ DTO 타입 수정
+        // 이름 중복 검사
+        if (categoryRepo.findByName(requestDto.getName()).isPresent()) {
             throw new BusinessException(ErrorCode.CATEGORY_NAME_DUPLICATIED);
         }
 
-        // ✨ 수정된 부분: 정적 팩토리 메서드를 사용하여 엔티티를 생성합니다.
-        Category newCategory = Category.create(categoryDto.getName());
+        // 부모 카테고리 조회
+        Category parent = null;
+        if (requestDto.getParentId() != null) {
+            parent = categoryRepo.findById(requestDto.getParentId())
+                    .orElseThrow(() -> new BusinessException(ErrorCode.CATEGORY_NOT_FOUND, "부모 카테고리를 찾을 수 없습니다."));
+        }
 
-        // JPA save가 호출되는 시점에, newCategory 객체에 Auditing 기능이 적용되어
-        // createdBy, createdAt 필드가 채워진 후 DB에 INSERT 됩니다.
-        Category savedCategory = categoryRepo.save(newCategory);
+        Category newCategory = Category.builder()
+                .name(requestDto.getName())
+                .parent(parent)
+                .build();
 
-        return savedCategory.getId();
+        return categoryRepo.save(newCategory).getId();
     }
 
     /**
      * 카테고리 수정.
      *
      * @param categoryId    카테고리 ID.
-     * @param categoryDto   카테고리 요청 데이터.
+     * @param requestDto   카테고리 요청 데이터.
      * @return              카테고리 ID 리턴.
      */
     @Transactional
-    public CategoryResponse updateCategory(Long categoryId, CategoryRequest.CategoryUpdate categoryDto){
-
-        // 수정할 카테고리 존재 확인
+    public CategoryDto.Response updateCategory(Long categoryId, CategoryDto.UpdateRequest requestDto) { // ✨ DTO 타입 수정
         Category category = categoryRepo.findById(categoryId)
-                .orElseThrow(()-> new BusinessException(ErrorCode.CATEGORY_NOT_FOUND));
-        // 같은 이름 카테고리 확인
-        Optional<Category> newCategory = categoryRepo.findByName(categoryDto.getName());
+                .orElseThrow(() -> new BusinessException(ErrorCode.CATEGORY_NOT_FOUND));
 
-        // 같은 카테고리명 확인
-        if (newCategory.isPresent()){
-            // 수정 중인 카테고리가 아닌지 확인
-            if (!newCategory.get().getId().equals(categoryId)){
-                // ID가 다를 경우 이름 중복
-                throw new BusinessException(ErrorCode.CATEGORY_NAME_DUPLICATIED);
-            }
+        // 수정하려는 이름이 이미 존재하는지 확인
+        Optional<Category> existingCategory = categoryRepo.findByName(requestDto.getName());
+        if (existingCategory.isPresent() && !existingCategory.get().getId().equals(categoryId)) {
+            // 다른 카테고리가 이미 그 이름을 사용 중인 경우
+            throw new BusinessException(ErrorCode.CATEGORY_NAME_DUPLICATIED);
         }
-        if (categoryDto.getName().isBlank()) throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE, "카테고리 명을 입력해주세요.");
-        // Entity 업데이트
-        category.updateName(category.getName());
 
-        return new CategoryResponse(category);
+        // ✨ 올바른 값으로 업데이트
+        category.updateName(requestDto.getName());
+
+        // 변경된 엔티티를 DTO로 변환하여 반환
+        return CategoryDto.Response.from(category);
     }
 
     /**

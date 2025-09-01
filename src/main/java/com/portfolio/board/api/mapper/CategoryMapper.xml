@@ -2,26 +2,36 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.portfolio.board.api.mapper.CategoryMapper">
-    <resultMap id="categoryResultMap" type="com.portfolio.board.api.domain.Category">
+    <resultMap id="categoryResultMap" type="com.portfolio.board.api.dto.CategoryDto$Response">
         <id property="id" column="id"/>
         <result property="name" column="name"/>
+        <result property="parentId" column="parent_id"/>
         <result property="createdAt" column="created_at"/>
         <result property="createdBy" column="created_by"/>
         <result property="modifiedAt" column="modified_at"/>
         <result property="modifiedBy" column="modified_by"/>
+<!--        <collection  property="children" javaType="com.portfolio.board.api.domain.Category">-->
+<!--            <id property="id" column="child_id"/>-->
+<!--            <result property="name" column="child_name"/>-->
+<!--            <result property="createdAt" column="child_created_at"/>-->
+<!--            <result property="createdBy" column="child_created_by"/>-->
+<!--            <result property="modifiedAt" column="child_modified_at"/>-->
+<!--            <result property="modifiedBy" column="child_modified_by"/>-->
+<!--        </collection >-->
     </resultMap>
 
     <select id="searchCategoryByKeywordXml" parameterType="string" resultMap="categoryResultMap">
         SELECT
-            id
-            , name
-            , created_at
-            , created_by
-            , modified_at
-            , modified_by
-        FROM category
-        WHERE UPPER(name) LIKE CONCAT('%', UPPER(#{keyword}), '%')
-            OR UPPER(id) LIKE CONCAT('%', UPPER(#{keyword}), '%')
-        ORDER BY created_at DESC
+            a.id
+            , a.name
+            , a.created_at
+            , a.created_by
+            , a.modified_at
+            , a.modified_by
+            , a.parent_id
+        FROM category a
+        WHERE UPPER(a.name) LIKE CONCAT('%', UPPER(#{keyword}), '%')
+            OR UPPER(a.id) LIKE CONCAT('%', UPPER(#{keyword}), '%')
+        ORDER BY a.created_at DESC
     </select>
 </mapper>

@@ -3,11 +3,14 @@ package com.portfolio.board.api.controller;
 import com.portfolio.board.api.dto.MemberRequest;
 import com.portfolio.board.api.dto.MemberResponse;
 import com.portfolio.board.api.service.MemberService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+@Tag(name = "Admin", description = "관리자 관련 API")
 @RestController
 @RequestMapping("/api/admin")
 @RequiredArgsConstructor
@@ -22,6 +25,7 @@ public class AdminController {
      * @return 성공 메시지
      */
     @PutMapping("/users/{userId}")
+    @Operation(summary = "사용자 정보 수정", description = "관리자가 특정 사용자의 정보를 수정하는 API")
     public ResponseEntity<String> updateUserInfoByAdmin(
             @PathVariable Long userId,
             @Valid @RequestBody MemberRequest.UpdateUserInfoRequest request) {
@@ -36,6 +40,7 @@ public class AdminController {
      * @return 해당 사용자의 정보를 담은 DTO
      */
     @GetMapping("/users/{userId}")
+    @Operation(summary = "사용자 정보 조회", description = "관리자가 특정 사용자의 정보를 조회하는 API")
     public ResponseEntity<MemberResponse.UserInfoResponse> getUserInfoByAdmin(@PathVariable Long userId) {
         MemberResponse.UserInfoResponse userInfo = memberService.getUserInfo(userId);
         return ResponseEntity.ok(userInfo);
