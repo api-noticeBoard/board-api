@@ -70,6 +70,12 @@ public class CategoryService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * 새로운 카테고리 생성.
+     *
+     * @param requestDto 카테고리 요청 데이터.
+     * @return            카테고리 ID 리턴.
+     */
     @Transactional
     public Long createCategory(CategoryDto.CreateRequest requestDto) { // ✨ DTO 타입 수정
         // 이름 중복 검사

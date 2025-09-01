@@ -54,6 +54,7 @@ public class CategoryController {
     public ResponseEntity<CategoryDto.Response> getCategoryById(@PathVariable Long categoryId) { // ✨ DTO 타입 수정
         return ResponseEntity.ok(categoryService.getCategoryById(categoryId));
     }
+
     /**
      * 카테고리 생성
      *
