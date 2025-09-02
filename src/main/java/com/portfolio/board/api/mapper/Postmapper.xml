@@ -2,19 +2,22 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.portfolio.board.api.mapper.PostMapper">
-    <resultMap id="postResultMap" type="com.portfolio.board.api.domain.Post">
+    <resultMap id="postResultMap" type="com.portfolio.board.api.dto.PostDto$Response">
         <id property="id" column="id"/>
         <result property="title" column="title"/>
         <result property="content" column="content"/>
         <result property="createdAt" column="created_at"/>
-        <result property="createdBy" column="created_by"/>
+        <result property="categoryName" column="category_name"/>
+<!--        <result property="createdBy" column="created_by"/>-->
         <result property="modifiedAt" column="modified_at"/>
-        <result property="modifiedBy" column="modified_by"/>
+<!--        <result property="modifiedBy" column="modified_by"/>-->
+        <result property="createdByName" column="created_by_Name"/>
+        <result property="modifiedByName" column="modified_by_Name"/>
 <!--        연관된 Category 객체를 매핑하는 부분 -->
-        <association property="category" javaType="com.portfolio.board.api.domain.Category">
-            <id property="id" column="category_id"/>
-            <result property="name" column="category_name"/>
-        </association>
+<!--        <association property="category" javaType="com.portfolio.board.api.domain.Category">-->
+<!--            <id property="id" column="category_id"/>-->
+<!--            <result property="name" column="category_name"/>-->
+<!--        </association>-->
     </resultMap>
     
     <select id="searchPostByKeywordXml" parameterType="string" resultMap="postResultMap">
@@ -22,20 +25,58 @@
             a.id
             , a.title
             , a.content
-            , b.id            as category_id
+<!--            , b.id            as category_id-->
             , b.name          as category_name
             , a.created_at
             , a.created_by
             , a.modified_at
             , a.modified_by
+            , c.name            AS created_by_Name
+            , d.name            AS modified_by_Name
         FROM
             post a
-        JOIN
-            category b ON a.category_id = b.id
+        LEFT JOIN category b ON a.category_id = b.id
+        LEFT JOIN MEMBER c ON a.created_by = c.id
+        LEFT JOIN MEMBER d ON a.modified_by = d.id
         WHERE
             UPPER(a.title) LIKE CONCAT('%', UPPER(#{keyword}), '%')
             OR UPPER(a.content) LIKE CONCAT('%', UPPER(#{keyword}), '%')
             OR UPPER(b.name) LIKE CONCAT('%', UPPER(#{keyword}), '%')
+        ORDER BY a.id DESC
+    </select>
+    <select id="findById" parameterType="Long" resultMap="postResultMap">
+        SELECT
+        a.id
+        , a.title
+        , a.content
+<!--        , b.id              AS category_id-->
+        , b.name            AS category_name
+        , a.created_at
+        , a.modified_at
+        , c.name            AS created_by_Name
+        , d.name            AS modified_by_Name
+        FROM post a
+        LEFT JOIN category b ON a.category_id = b.id
+        LEFT JOIN MEMBER c ON a.created_by = c.id
+        LEFT JOIN MEMBER d ON a.modified_by = d.id
+        WHERE a.id = #{postId}
+        ORDER BY a.id DESC
+    </select>
+    <select id="findAll" resultMap="postResultMap">
+        SELECT
+        a.id
+        , a.title
+        , a.content
+<!--        , b.id              AS category_id-->
+        , b.name            AS category_name
+        , a.created_at
+        , a.modified_at
+        , c.name            AS created_by_Name
+        , d.name            AS modified_by_Name
+        FROM post a
+        LEFT JOIN category b ON a.category_id = b.id
+        LEFT JOIN MEMBER c ON a.created_by = c.id
+        LEFT JOIN MEMBER d ON a.modified_by = d.id
         ORDER BY a.id DESC
     </select>
 </mapper>

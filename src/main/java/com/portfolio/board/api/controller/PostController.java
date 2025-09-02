@@ -1,7 +1,6 @@
 package com.portfolio.board.api.controller;
 
-import com.portfolio.board.api.dto.PostRequest;
-import com.portfolio.board.api.dto.PostResponse;
+import com.portfolio.board.api.dto.PostDto;
 import com.portfolio.board.api.service.PostService;
 import com.portfolio.common.system.exception.BusinessException;
 import com.portfolio.common.system.exception.ErrorCode;
@@ -32,17 +31,17 @@ public class PostController {
      */
     @GetMapping("/search")
     @Operation(summary = "keyword 검색", description = "게시글을 keyword로 검색")
-    public ResponseEntity<List<PostResponse>> searchPostByKeywordXml(@Parameter(description = "keyword 검색", example = "테스트")
+    public ResponseEntity<List<PostDto.Response>> searchPostByKeywordXml(@Parameter(description = "keyword 검색", example = "테스트")
                                                                      @RequestParam(value = "keyword", required = false) String keyword){
-        List<PostResponse> postResponses;
+        List<PostDto.Response> responses;
         if (keyword != null && !keyword.trim().isEmpty()) {
-            postResponses = postService.searchPostByKeywordXml(keyword);
+            responses = postService.searchPostByKeywordXml(keyword);
         } else {
-            postResponses = postService.getAllPosts();
+            responses = postService.getAllPosts();
         }
-        if (postResponses.isEmpty())    throw new BusinessException(ErrorCode.CATEGORY_NOT_FOUND);
+        if (responses.isEmpty())    throw new BusinessException(ErrorCode.CATEGORY_NOT_FOUND);
 
-        return ResponseEntity.ok(postResponses);
+        return ResponseEntity.ok(responses);
     }
 
     /**
@@ -53,7 +52,7 @@ public class PostController {
      */
     @GetMapping("/search/{postId}")
     @Operation(summary = "게시물 단건조회", description = "게시글")
-    public ResponseEntity<PostResponse> getPostById(@Parameter(description = "게시물 ID", example = "1")
+    public ResponseEntity<PostDto.Response> getPostById(@Parameter(description = "게시물 ID", example = "1")
                                                         @PathVariable Long postId){
         if (postId == null || postId <= 0) throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE);
 
@@ -72,7 +71,7 @@ public class PostController {
      */
     @PostMapping
     @Operation(summary = "게시글 생성", description = "새로운 게시글 생성")
-    public ResponseEntity<Void> createPost(@Valid @RequestBody PostRequest.PostCreate requestDto) {
+    public ResponseEntity<Void> createPost(@Valid @RequestBody PostDto.CreateRequest requestDto) {
         // 1. @Valid 어노테이션을 통해 requestDto의 유효성을 검사합니다.
         //    만약 검증에 실패하면, system-common의 GlobalExceptionHandler가
         //    MethodArgumentNotValidException을 처리하여 400 에러를 응답합니다.
@@ -96,7 +95,7 @@ public class PostController {
     @PutMapping("/{postId}")
     @Operation(summary = "게시글 수정", description = "게시글ID로 수정")
     public ResponseEntity<Void> updatePost(@Parameter(description = "수정할 ID", example = "1")
-                                               @PathVariable Long postId, @Valid @RequestBody PostRequest.PostUpdate requestDto){
+                                               @PathVariable Long postId, @Valid @RequestBody PostDto.UpdateRequest requestDto){
         postService.updatePost(postId, requestDto);
 
         return ResponseEntity.ok().build();

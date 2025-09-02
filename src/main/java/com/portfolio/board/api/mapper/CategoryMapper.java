@@ -12,9 +12,9 @@ public interface CategoryMapper {
 
     List<CategoryDto.FlatNode> findAllCategoriesAsFlatList();
 
-    CategoryDto.Response findByName(String categoryName);
+    CategoryDto.Response findByName(@Param("categoryName") String categoryName);
 
-    CategoryDto.Response findById(Long categoryId);
+    CategoryDto.Response findById(@Param("categoryId") Long categoryId);
 
     List<CategoryDto.Response> findAll();
 }

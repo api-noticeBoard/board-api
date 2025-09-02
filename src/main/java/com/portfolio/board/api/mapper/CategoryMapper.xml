@@ -117,7 +117,7 @@
         WHERE a.id = #{categoryId}
         ORDER BY a.created_at DESC
     </select>
-    <select id="findAll" parameterType="string" resultMap="categoryResultMap">
+    <select id="findAll" resultMap="categoryResultMap">
         SELECT
         a.id
         , a.name

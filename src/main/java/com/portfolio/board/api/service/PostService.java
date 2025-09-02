@@ -2,8 +2,7 @@ package com.portfolio.board.api.service;
 
 import com.portfolio.board.api.domain.Category;
 import com.portfolio.board.api.domain.Post;
-import com.portfolio.board.api.dto.PostRequest;
-import com.portfolio.board.api.dto.PostResponse;
+import com.portfolio.board.api.dto.PostDto;
 import com.portfolio.board.api.mapper.PostMapper;
 import com.portfolio.board.api.repository.CategoryRepository;
 import com.portfolio.board.api.repository.PostRepository;
@@ -15,7 +14,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -32,7 +30,7 @@ public class PostService {
      * @return          카테고리 응답 데이터 리턴.
      */
     @Transactional(readOnly = true)
-    public List<PostResponse> searchPostByKeywordXml(@Param("keyword") String keyword){
+    public List<PostDto.Response> searchPostByKeywordXml(@Param("keyword") String keyword){
         return postMapper.searchPostByKeywordXml(keyword);
     }
 
@@ -43,11 +41,14 @@ public class PostService {
      * @return       응답 데이터 리턴.
      */
     @Transactional(readOnly = true)
-    public PostResponse getPostById(@Param("postId") Long postId){
-        Post post = postRepo.findById(postId)
-                .orElseThrow(()-> new BusinessException(ErrorCode.POST_NOT_FOUND));
-
-        return new PostResponse(post);
+    public PostDto.Response getPostById(@Param("postId") Long postId){
+        // JPA
+//        Post post = postRepo.findById(postId)
+//                .orElseThrow(()-> new BusinessException(ErrorCode.POST_NOT_FOUND));
+//
+//        return new PostResponse(post);
+        // MyBatis
+        return postMapper.findById(postId);
     }
 
 
@@ -57,10 +58,13 @@ public class PostService {
      * @return  전체 List 데이터
      */
     @Transactional(readOnly = true)
-    public List<PostResponse> getAllPosts(){
-        return postRepo.findAll().stream()
-                .map(PostResponse::new)
-                .collect(Collectors.toList());
+    public List<PostDto.Response> getAllPosts(){
+        // JPA
+//        return postRepo.findAll().stream()
+//                .map(PostResponse::new)
+//                .collect(Collectors.toList());
+        // MyBatis
+        return postMapper.findAll();
     }
 
     /**
@@ -73,7 +77,7 @@ public class PostService {
      *                데이터 일관성을 보장합니다.
      */
     @Transactional
-    public Long createPost(PostRequest.PostCreate postDto) {
+    public Long createPost(PostDto.CreateRequest postDto) {
 
         // 1. 카테고리가 존재하는지 확인합니다.
         //    orElseThrow를 사용하여 카테고리가 없으면 BusinessException을 던집니다.
@@ -83,7 +87,12 @@ public class PostService {
 
         // 2. DTO를 Post 엔티티로 변환합니다. Builder 패턴을 사용하면 가독성이 좋습니다.
         // Builder 패턴을 DTO.toEntity에 넣음
-        Post newPost = postDto.toEntity(category);
+//        Post newPost = postDto.toEntity(category);
+        Post newPost = Post.builder()
+                .title(postDto.getTitle())
+                .content(postDto.getContent())
+                .category(category)
+                .build();
 
         // 3. Post 엔티티를 저장합니다.
         //    **핵심**: 여기서 createdAt, createdBy 등을 직접 설정하지 않습니다.
@@ -103,7 +112,7 @@ public class PostService {
      * @return          게시물 ID 리턴
      */
     @Transactional
-    public Long updatePost(Long postId, PostRequest.PostUpdate postDto){
+    public Long updatePost(Long postId, PostDto.UpdateRequest postDto){
 
         // ID로 기존 게시물 존재 체크
         Post post = postRepo.findById(postId)
@@ -131,7 +140,7 @@ public class PostService {
     public Long deletePost(Long postId){
 
         // 게시글 존재 확인
-        if (postRepo.existsById(postId)){
+        if (!postRepo.existsById(postId)){
             throw new BusinessException(ErrorCode.POST_NOT_FOUND);
         }
         postRepo.deleteById(postId);

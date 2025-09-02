@@ -12,7 +12,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -29,6 +28,7 @@ public class CategoryService {
      */
     @Transactional(readOnly = true)
     public List<CategoryDto.TreeResponse> getCategoryTree() {
+        // JPA
 //        List<Category> allCategories = categoryRepo.findAll();
 //
 //        return allCategories.stream()
@@ -141,6 +141,7 @@ public class CategoryService {
 //        return categoryRepo.findAll().stream()
 //                .map(CategoryDto.Response::from)
 //                .collect(Collectors.toList());
+        // MyBatis
         return categoryMapper.findAll();
     }
 
@@ -263,7 +264,7 @@ public class CategoryService {
     public Long deleteCategory(Long categoryId){
 
         // 삭제할 카테고리 존재 확인
-        if (categoryRepo.existsById(categoryId)) {
+        if (!categoryRepo.existsById(categoryId)) {
             throw new BusinessException(ErrorCode.CATEGORY_NOT_FOUND);
         }
         // 삭제
