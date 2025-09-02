@@ -11,9 +11,7 @@ import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -23,8 +21,14 @@ public class CategoryService {
     private final CategoryRepository categoryRepo;
     private final CategoryMapper categoryMapper;
 
+    /**
+     * [최종 권장 방식] MyBatis 재귀 쿼리를 사용하여 전체 카테고리 목록을 계층 구조로 조회합니다.
+     * DB 호출은 단 한 번으로, 애플리케이션 메모리에서 트리 구조를 조립하여 성능이 매우 좋습니다.
+     *
+     * @return TreeResponse
+     */
     @Transactional(readOnly = true)
-    public List<CategoryDto.TreeResponse> searchAllTreeCategory() {
+    public List<CategoryDto.TreeResponse> getCategoryTree() {
 //        List<Category> allCategories = categoryRepo.findAll();
 //
 //        return allCategories.stream()
@@ -33,7 +37,55 @@ public class CategoryService {
 //                .collect(Collectors.toList());
 
         // MyBatis 방식 예시
-         return categoryMapper.findCategoryTree();
+         List<CategoryDto.FlatNode> flatList = categoryMapper.findAllCategoriesAsFlatList();
+
+         return buildTreeFromFlatList(flatList);
+    }
+
+    /**
+     * * 평면적인 노드 리스트를 계층적인 트리 구조로 변환하는 헬퍼 메서드.
+     * @param flatList DB에서 조회된 평면적인 카테고리 DTO 리스트
+     * @return 계층 구조로 조립된 최상위 카테고리 DTO 리스트
+     *
+     * @param flatList
+     * @return TreeResponse
+     */
+    private List<CategoryDto.TreeResponse> buildTreeFromFlatList(List<CategoryDto.FlatNode> flatList) {
+        // 최종적으로 반환될 최상위 노드 리스트
+        List<CategoryDto.TreeResponse> rootNodes = new ArrayList<>();
+
+        // 각 노드를 빠르게 찾기 위해 ID를 key로 사용하는 Map을 생성합니다. (성능 최적화)
+        Map<Long, CategoryDto.TreeResponse> nodeMap = new HashMap<>();
+
+        // 1단계: 모든 노드를 TreeResponse DTO로 변환하고 Map에 저장합니다.
+        for (CategoryDto.FlatNode flatNode : flatList) {
+            CategoryDto.TreeResponse treeNode = new CategoryDto.TreeResponse();
+            treeNode.setId(flatNode.getId());
+            treeNode.setName(flatNode.getName());
+            nodeMap.put(treeNode.getId(), treeNode);
+        }
+
+        // 2단계: 각 노드를 순회하면서 자신의 부모를 찾아 연결합니다.
+        for (CategoryDto.FlatNode flatNode : flatList) {
+            Long parentId = flatNode.getParentId();
+            // value값인 TreeResponse 주입
+            CategoryDto.TreeResponse currentNode = nodeMap.get(flatNode.getId());
+
+            if (parentId == null) {
+                // 부모 ID가 null이면 최상위 노드이므로, rootNodes 리스트에 추가합니다.
+                rootNodes.add(currentNode);
+            } else {
+                // 부모 ID가 있으면, Map에서 부모 노드를 찾습니다.
+                // value값인 TreeResponse 주입 결국 parentNode == currentNode == nodeMap.get()
+                CategoryDto.TreeResponse parentNode = nodeMap.get(parentId);
+                if (parentNode != null) {
+                    // 부모 노드의 children 리스트에 현재 노드를 추가합니다.
+                    parentNode.getChildren().add(currentNode);
+                }
+            }
+        }
+
+        return rootNodes;
     }
 
     /**
@@ -53,10 +105,12 @@ public class CategoryService {
      */
     @Transactional(readOnly = true)
     public CategoryDto.Response getCategoryByName(String categoryName){
+        // JPA
 //        Category category = categoryRepo.findByName(categoryName)
 //                .orElseThrow(()-> new BusinessException(ErrorCode.CATEGORY_NOT_FOUND));
 //
 //        return CategoryDto.Response.from(category);
+        // MyBatis
         return categoryMapper.findByName(categoryName);
     }
 
@@ -67,10 +121,12 @@ public class CategoryService {
      */
     @Transactional(readOnly = true)
     public CategoryDto.Response getCategoryById(Long categoryId){
+        // JPA
 //        Category category = categoryRepo.findById(categoryId)
 //                .orElseThrow(()-> new BusinessException(ErrorCode.CATEGORY_NOT_FOUND));
 //
 //        return CategoryDto.Response.from(category);
+        // MyBatis
         return categoryMapper.findById(categoryId);
     }
 
@@ -81,9 +137,11 @@ public class CategoryService {
      */
     @Transactional(readOnly = true)
     public List<CategoryDto.Response> getAllCategories(){
-        return categoryRepo.findAll().stream()
-                .map(CategoryDto.Response::from)
-                .collect(Collectors.toList());
+        // JPA
+//        return categoryRepo.findAll().stream()
+//                .map(CategoryDto.Response::from)
+//                .collect(Collectors.toList());
+        return categoryMapper.findAll();
     }
 
     /**
@@ -96,7 +154,7 @@ public class CategoryService {
     public Long createCategory(CategoryDto.CreateRequest requestDto) { // ✨ DTO 타입 수정
         // 이름 중복 검사
         if (categoryRepo.findByName(requestDto.getName()).isPresent()) {
-            throw new BusinessException(ErrorCode.CATEGORY_NAME_DUPLICATIED);
+            throw new BusinessException(ErrorCode.CATEGORY_DUPLICATIED);
         }
 
         // 부모 카테고리 조회
@@ -131,7 +189,7 @@ public class CategoryService {
         Optional<Category> existingCategory = categoryRepo.findByName(requestDto.getName());
         if (existingCategory.isPresent() && !existingCategory.get().getId().equals(categoryId)) {
             // 다른 카테고리가 이미 그 이름을 사용 중인 경우
-            throw new BusinessException(ErrorCode.CATEGORY_NAME_DUPLICATIED);
+            throw new BusinessException(ErrorCode.CATEGORY_DUPLICATIED);
         }
         // ✨ 올바른 값으로 업데이트
         categoryToUpdate.updateName(requestDto.getName());
@@ -154,7 +212,7 @@ public class CategoryService {
 
         // 새로운 부모 ID와 현재 부모 ID가 같으면 변경할 필요가 없으므로 로직을 종료합니다.
         if (Objects.equals(currentParentId, newParentId)) {
-            throw new BusinessException(ErrorCode.CATEGORY_NAME_DUPLICATIED);
+            throw new BusinessException(ErrorCode.CATEGORY_DUPLICATIED);
         }
 
         // 새로운 부모 카테고리를 설정합니다.

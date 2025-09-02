@@ -28,7 +28,7 @@ public class CategoryController {
     @Operation(summary = "전체 tree형식 카테고리 조회", description = "전체 tree형식 카테고리 조회")
     public ResponseEntity<List<CategoryDto.TreeResponse>> searchTreeCategory(){
 
-        List<CategoryDto.TreeResponse> treeResponse = categoryService.searchAllTreeCategory();
+        List<CategoryDto.TreeResponse> treeResponse = categoryService.getCategoryTree();
 
         return ResponseEntity.ok(treeResponse);
     }

@@ -8,6 +8,7 @@ import jakarta.validation.constraints.Size;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -39,6 +40,19 @@ public class CategoryDto {
         private String name;
         @Schema(description = "부모 카테고리 ID (최상위일 경우 null)", example = "97")
         private Long parentId;
+    }
+
+    /**
+     * [신규] MyBatis 재귀 쿼리의 평면적인 결과를 담기 위한 내부 DTO.
+     * DB에서 조회된 한 줄(row)의 데이터와 일치합니다.
+     */
+    @Getter
+    @Setter
+    public static class FlatNode {
+        private Long id;
+        private String name;
+        private Long parentId;
+        // path, level 등 재귀 쿼리에서 추가한 다른 컬럼들도 필요 시 여기에 추가할 수 있습니다.
     }
 
     // --- 응답(Response) DTOs ---
@@ -79,7 +93,7 @@ public class CategoryDto {
     public static class TreeResponse {
         @Schema(description = "ID") private Long id;
         @Schema(description = "이름") private String name;
-        @Schema(description = "자식 목록") private List<TreeResponse> children;
+        @Schema(description = "자식 목록") private List<TreeResponse> children = new ArrayList<>();
 
         public static TreeResponse from(Category category) {
             return TreeResponse.builder()
