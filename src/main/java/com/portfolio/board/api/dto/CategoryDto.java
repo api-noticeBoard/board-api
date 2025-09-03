@@ -81,6 +81,8 @@ public class CategoryDto {
 //                    .createdBy(category.getCreatedBy())
                     .modifiedAt(category.getModifiedAt())
 //                    .modifiedBy(category.getModifiedBy())
+                    .createdByName(category.getAuthor() != null ? category.getAuthor().getName() : null)
+                    .modifiedByName(category.getModifier() != null ? category.getModifier().getName() : null)
                     .build();
         }
     }
@@ -93,7 +95,14 @@ public class CategoryDto {
     public static class TreeResponse {
         @Schema(description = "ID") private Long id;
         @Schema(description = "이름") private String name;
-        @Schema(description = "자식 목록") private List<TreeResponse> children = new ArrayList<>();
+        /**
+         * ✨ [핵심 수정] @Builder.Default 어노테이션을 추가합니다.
+         * 이렇게 하면, 빌더를 통해 children 값을 설정하지 않았을 때,
+         * 기본값으로 new ArrayList<>()가 사용되어 null이 되는 것을 방지합니다.
+         */
+        @Schema(description = "자식 목록")
+        @Builder.Default
+        private List<TreeResponse> children = new ArrayList<>();
 
         public static TreeResponse from(Category category) {
             return TreeResponse.builder()

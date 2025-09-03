@@ -49,6 +49,10 @@ public class Category extends BaseEntity {
     @JoinColumn(name = "createdBy", referencedColumnName = "id", insertable = false, updatable = false)
     private Member author; // '작성자'라는 의미의 필드 추가
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "modifiedBy", referencedColumnName = "id", insertable = false, updatable = false)
+    private Member modifier; // '수정자자'라는 의미의 필드 추가
+
     @Builder
     public Category(String name, Category parent){
         this.name = name;

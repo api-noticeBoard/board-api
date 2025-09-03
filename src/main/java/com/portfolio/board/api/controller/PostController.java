@@ -4,6 +4,7 @@ import com.portfolio.board.api.dto.PostDto;
 import com.portfolio.board.api.service.PostService;
 import com.portfolio.common.system.exception.BusinessException;
 import com.portfolio.common.system.exception.ErrorCode;
+import com.portfolio.common.system.paging.PageDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -13,7 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
-import java.util.List;
+import java.util.Optional;
 
 @Tag(name = "Post", description = "게시글 관련 API")
 @RestController
@@ -31,17 +32,17 @@ public class PostController {
      */
     @GetMapping("/search")
     @Operation(summary = "keyword 검색", description = "게시글을 keyword로 검색")
-    public ResponseEntity<List<PostDto.Response>> searchPostByKeywordXml(@Parameter(description = "keyword 검색", example = "테스트")
-                                                                     @RequestParam(value = "keyword", required = false) String keyword){
-        List<PostDto.Response> responses;
-        if (keyword != null && !keyword.trim().isEmpty()) {
-            responses = postService.searchPostByKeywordXml(keyword);
-        } else {
-            responses = postService.getAllPosts();
-        }
-        if (responses.isEmpty())    throw new BusinessException(ErrorCode.CATEGORY_NOT_FOUND);
+    public ResponseEntity<PageDto.Response<PostDto.Response>> searchPostByKeywordXml(@Parameter(description = "keyword 검색", example = "테스트")
+                                                                     @RequestParam(value = "keyword", required = false) String keyword,
+                                                                     @Parameter(description = "페이지 요청 정보")
+                                                                     @ModelAttribute PageDto.Request pageRequest){
+        PageDto.Response<PostDto.Response> response =
+                postService.searchPostByKeywordXml(keyword, pageRequest);
 
-        return ResponseEntity.ok(responses);
+        if (response.getContent().isEmpty())
+            throw new BusinessException(ErrorCode.CATEGORY_NOT_FOUND);
+
+        return ResponseEntity.ok(response);
     }
 
     /**
@@ -52,7 +53,7 @@ public class PostController {
      */
     @GetMapping("/search/{postId}")
     @Operation(summary = "게시물 단건조회", description = "게시글")
-    public ResponseEntity<PostDto.Response> getPostById(@Parameter(description = "게시물 ID", example = "1")
+    public ResponseEntity<Optional<PostDto.Response>> getPostById(@Parameter(description = "게시물 ID", example = "1")
                                                         @PathVariable Long postId){
         if (postId == null || postId <= 0) throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE);
 

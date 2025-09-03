@@ -6,18 +6,11 @@
         <id property="id" column="id"/>
         <result property="title" column="title"/>
         <result property="content" column="content"/>
-        <result property="createdAt" column="created_at"/>
         <result property="categoryName" column="category_name"/>
-<!--        <result property="createdBy" column="created_by"/>-->
+        <result property="createdAt" column="created_at"/>
         <result property="modifiedAt" column="modified_at"/>
-<!--        <result property="modifiedBy" column="modified_by"/>-->
         <result property="createdByName" column="created_by_Name"/>
         <result property="modifiedByName" column="modified_by_Name"/>
-<!--        연관된 Category 객체를 매핑하는 부분 -->
-<!--        <association property="category" javaType="com.portfolio.board.api.domain.Category">-->
-<!--            <id property="id" column="category_id"/>-->
-<!--            <result property="name" column="category_name"/>-->
-<!--        </association>-->
     </resultMap>
     
     <select id="searchPostByKeywordXml" parameterType="string" resultMap="postResultMap">
@@ -25,7 +18,6 @@
             a.id
             , a.title
             , a.content
-<!--            , b.id            as category_id-->
             , b.name          as category_name
             , a.created_at
             , a.created_by
@@ -49,7 +41,6 @@
         a.id
         , a.title
         , a.content
-<!--        , b.id              AS category_id-->
         , b.name            AS category_name
         , a.created_at
         , a.modified_at
@@ -67,7 +58,6 @@
         a.id
         , a.title
         , a.content
-<!--        , b.id              AS category_id-->
         , b.name            AS category_name
         , a.created_at
         , a.modified_at

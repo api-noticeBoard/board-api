@@ -8,12 +8,14 @@ import com.portfolio.board.api.repository.CategoryRepository;
 import com.portfolio.board.api.repository.PostRepository;
 import com.portfolio.common.system.exception.BusinessException;
 import com.portfolio.common.system.exception.ErrorCode;
+import com.portfolio.common.system.paging.PageDto;
 import lombok.RequiredArgsConstructor;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -24,24 +26,29 @@ public class PostService {
 
     private final PostMapper postMapper;
 
+
     /**
      * 게시글 keyword 검색
-     * @param keyword   검색 keyword
-     * @return          카테고리 응답 데이터 리턴.
+     *
+     * @param keyword 검색 keyword
+     * @return 카테고리 응답 데이터 리턴.
      */
     @Transactional(readOnly = true)
-    public List<PostDto.Response> searchPostByKeywordXml(@Param("keyword") String keyword){
-        return postMapper.searchPostByKeywordXml(keyword);
+    public PageDto.Response<PostDto.Response> searchPostByKeywordXml(@Param("keyword") String keyword, PageDto.Request pageRequest) {
+        // 1. 매퍼 호출 -> 인터셉터가 페이징 처리 및 pageRequest.totalCount 설정
+        List<PostDto.Response> content = postMapper.searchPostByKeywordXml(keyword, pageRequest);
+        // 2. 결과 조합하여 반환
+        return new PageDto.Response<>(content, pageRequest);
     }
 
     /**
      * 게시물ID로 단건조회
      *
      * @param postId 게시물ID
-     * @return       응답 데이터 리턴.
+     * @return 응답 데이터 리턴.
      */
     @Transactional(readOnly = true)
-    public PostDto.Response getPostById(@Param("postId") Long postId){
+    public Optional<PostDto.Response> getPostById(@Param("postId") Long postId) {
         // JPA
 //        Post post = postRepo.findById(postId)
 //                .orElseThrow(()-> new BusinessException(ErrorCode.POST_NOT_FOUND));
@@ -52,29 +59,31 @@ public class PostService {
     }
 
 
-    /**
-     * 게시글 전체조회
-     *
-     * @return  전체 List 데이터
-     */
-    @Transactional(readOnly = true)
-    public List<PostDto.Response> getAllPosts(){
-        // JPA
-//        return postRepo.findAll().stream()
-//                .map(PostResponse::new)
-//                .collect(Collectors.toList());
-        // MyBatis
-        return postMapper.findAll();
-    }
+//    /**
+//     * 게시글 전체조회
+//     *
+//     * @return 전체 List 데이터
+//     */
+////    @Paging
+//    @Transactional(readOnly = true)
+//    public PageDto.Response<PostDto.Response> getAllPosts(PageDto.Request pageRequest) {
+//        // JPA
+////        return postRepo.findAll().stream()
+////                .map(PostResponse::new)
+////                .collect(Collectors.toList());
+//        // MyBatis
+//
+//        return postMapper.findAll();
+//    }
 
     /**
      * 새로운 게시글을 생성합니다.
      *
      * @param postDto 게시글 생성을 위한 요청 데이터.
      * @return 생성된 게시글의 고유 ID.
-     * @Transactional: 이 어노테이션이 붙은 메서드는 전체가 하나의 트랜잭션 단위로 실행됩니다.
-     *                메서드 실행 중 예외가 발생하면, 지금까지의 모든 데이터베이스 작업이 롤백되어
-     *                데이터 일관성을 보장합니다.
+     * @Transactional 이 어노테이션이 붙은 메서드는 전체가 하나의 트랜잭션 단위로 실행됩니다.
+     * 메서드 실행 중 예외가 발생하면, 지금까지의 모든 데이터베이스 작업이 롤백되어
+     * 데이터 일관성을 보장합니다.
      */
     @Transactional
     public Long createPost(PostDto.CreateRequest postDto) {
@@ -107,23 +116,23 @@ public class PostService {
     /**
      * 게시물 수정.
      *
-     * @param postId    게시물 ID
-     * @param postDto   게시물 요청 데이터
-     * @return          게시물 ID 리턴
+     * @param postId  게시물 ID
+     * @param postDto 게시물 요청 데이터
+     * @return 게시물 ID 리턴
      */
     @Transactional
-    public Long updatePost(Long postId, PostDto.UpdateRequest postDto){
+    public Long updatePost(Long postId, PostDto.UpdateRequest postDto) {
 
         // ID로 기존 게시물 존재 체크
         Post post = postRepo.findById(postId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.POST_NOT_FOUND));
 
         // DTO 필드의 null일 경우에만 변경. Dirty Checking: 변경감지
-        if (!postDto.getTitle().isBlank())      post.setTitle(postDto.getTitle());
-        if (!postDto.getContent().isBlank())    post.setContent(postDto.getContent());
+        if (!postDto.getTitle().isBlank()) post.setTitle(postDto.getTitle());
+        if (!postDto.getContent().isBlank()) post.setContent(postDto.getContent());
         if (postDto.getCategoryId() != null) {
             Category category = categoryRepo.findById(postDto.getCategoryId())
-                    .orElseThrow(()-> new BusinessException(ErrorCode.CATEGORY_NOT_FOUND));
+                    .orElseThrow(() -> new BusinessException(ErrorCode.CATEGORY_NOT_FOUND));
             post.setCategory(category);
         }
 
@@ -133,14 +142,14 @@ public class PostService {
     /**
      * 게시물 삭제
      *
-     * @param postId    게시물 ID
-     * @return          게시물 ID 리턴.
+     * @param postId 게시물 ID
+     * @return 게시물 ID 리턴.
      */
     @Transactional
-    public Long deletePost(Long postId){
+    public Long deletePost(Long postId) {
 
         // 게시글 존재 확인
-        if (!postRepo.existsById(postId)){
+        if (!postRepo.existsById(postId)) {
             throw new BusinessException(ErrorCode.POST_NOT_FOUND);
         }
         postRepo.deleteById(postId);
