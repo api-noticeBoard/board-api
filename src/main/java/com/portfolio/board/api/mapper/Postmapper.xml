@@ -35,7 +35,6 @@
             AND (UPPER(a.title) LIKE CONCAT('%', UPPER(#{keyword}), '%')
             OR UPPER(a.content) LIKE CONCAT('%', UPPER(#{keyword}), '%')
             OR UPPER(b.name) LIKE CONCAT('%', UPPER(#{keyword}), '%'))
-<!--        ORDER BY a.id DESC-->
     </select>
     <select id="findById" parameterType="Long" resultMap="postResultMap">
         SELECT
@@ -69,7 +68,6 @@
         LEFT JOIN MEMBER c ON a.created_by = c.id
         LEFT JOIN MEMBER d ON a.modified_by = d.id
         WHERE a.deleted_at IS NULL
-<!--        ORDER BY a.id DESC-->
     </select>
     <select id="findDeletedPosts" resultMap="postResultMap">
         SELECT

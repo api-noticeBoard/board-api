@@ -6,6 +6,7 @@ import com.portfolio.board.api.mapper.CategoryMapper;
 import com.portfolio.board.api.repository.CategoryRepository;
 import com.portfolio.common.system.exception.BusinessException;
 import com.portfolio.common.system.exception.ErrorCode;
+import com.portfolio.common.system.paging.PageDto;
 import lombok.RequiredArgsConstructor;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Service;
@@ -37,17 +38,17 @@ public class CategoryService {
 //                .collect(Collectors.toList());
 
         // MyBatis 방식 예시
-         List<CategoryDto.FlatNode> flatList = categoryMapper.findAllCategoriesAsFlatList();
+        List<CategoryDto.FlatNode> flatList = categoryMapper.findAllCategoriesAsFlatList();
 
-         return buildTreeFromFlatList(flatList);
+        return buildTreeFromFlatList(flatList);
     }
 
     /**
-     * * 평면적인 노드 리스트를 계층적인 트리 구조로 변환하는 헬퍼 메서드.
-     * @param flatList DB에서 조회된 평면적인 카테고리 DTO 리스트
-     * @return 계층 구조로 조립된 최상위 카테고리 DTO 리스트
+     * 평면적인 노드 리스트를 계층적인 트리 구조로 변환하는 헬퍼 메서드.
      *
+     * @param flatList DB에서 조회된 평면적인 카테고리 DTO 리스트
      * @param flatList
+     * @return 계층 구조로 조립된 최상위 카테고리 DTO 리스트
      * @return TreeResponse
      */
     private List<CategoryDto.TreeResponse> buildTreeFromFlatList(List<CategoryDto.FlatNode> flatList) {
@@ -90,21 +91,25 @@ public class CategoryService {
 
     /**
      * 카테고리 keyword 검색 (MyBatis)
-     * @param keyword   검색 keyword
-     * @return          카테고리 응답 데이터 리턴.
+     *
+     * @param keyword 검색 keyword
+     * @return 카테고리 응답 데이터 리턴.
      */
     @Transactional(readOnly = true)
-    public List<CategoryDto.Response> searchCategoryByKeywordXml(@Param("keyword") String keyword){
-        return categoryMapper.searchCategoryByKeywordXml(keyword);
+    public PageDto.Response<CategoryDto.Response> searchCategoryByKeywordXml(@Param("keyword") String keyword, PageDto.Request pageRequest) {
+        List<CategoryDto.Response> content = categoryMapper.searchCategoryByKeywordXml(keyword, pageRequest);
+        if (content == null || content.isEmpty()) throw new BusinessException(ErrorCode.CATEGORY_NOT_FOUND);
+        return new PageDto.Response<>(content, pageRequest);
     }
 
     /**
      * 카테고리명로 조회
+     *
      * @param categoryName 카테고리명
-     * @return     카테고리 응답 데이터 리턴.
+     * @return 카테고리 응답 데이터 리턴.
      */
     @Transactional(readOnly = true)
-    public CategoryDto.Response getCategoryByName(String categoryName){
+    public CategoryDto.Response getCategoryByName(String categoryName) {
         // JPA
 //        Category category = categoryRepo.findByName(categoryName)
 //                .orElseThrow(()-> new BusinessException(ErrorCode.CATEGORY_NOT_FOUND));
@@ -116,11 +121,12 @@ public class CategoryService {
 
     /**
      * 카테고리ID로 조회
+     *
      * @param categoryId 카테고리ID
-     * @return     카테고리 응답 데이터 리턴.
+     * @return 카테고리 응답 데이터 리턴.
      */
     @Transactional(readOnly = true)
-    public CategoryDto.Response getCategoryById(Long categoryId){
+    public CategoryDto.Response getCategoryById(Long categoryId) {
         // JPA
 //        Category category = categoryRepo.findById(categoryId)
 //                .orElseThrow(()-> new BusinessException(ErrorCode.CATEGORY_NOT_FOUND));
@@ -133,23 +139,29 @@ public class CategoryService {
     /**
      * 카테고리 전체조회
      *
-     * @return  전체 List 데이터
+     * @return 전체 List 데이터
      */
     @Transactional(readOnly = true)
-    public List<CategoryDto.Response> getAllCategories(){
+    public PageDto.Response<CategoryDto.Response> getAllCategories(PageDto.Request pageRequest) {
         // JPA
 //        return categoryRepo.findAll().stream()
 //                .map(CategoryDto.Response::from)
 //                .collect(Collectors.toList());
         // MyBatis
-        return categoryMapper.findAll();
+        List<CategoryDto.Response> content = categoryMapper.findAll(pageRequest);
+        if (content == null || content.isEmpty()) {
+            throw new BusinessException(ErrorCode.CATEGORY_NOT_FOUND);
+        }
+
+        return new PageDto.Response<>(content, pageRequest);
     }
+
 
     /**
      * 새로운 카테고리 생성.
      *
      * @param requestDto 카테고리 요청 데이터.
-     * @return            카테고리 ID 리턴.
+     * @return 카테고리 ID 리턴.
      */
     @Transactional
     public Long createCategory(CategoryDto.CreateRequest requestDto) { // ✨ DTO 타입 수정
@@ -176,9 +188,9 @@ public class CategoryService {
     /**
      * 카테고리 수정.
      *
-     * @param categoryId    카테고리 ID.
-     * @param requestDto   카테고리 요청 데이터.
-     * @return              카테고리 ID 리턴.
+     * @param categoryId 카테고리 ID.
+     * @param requestDto 카테고리 요청 데이터.
+     * @return 카테고리 ID 리턴.
      */
     @Transactional
     public CategoryDto.Response updateCategory(Long categoryId, CategoryDto.UpdateRequest requestDto) { // ✨ DTO 타입 수정
@@ -204,8 +216,8 @@ public class CategoryService {
     /**
      * 부모 카테고리를 변경하는 로직을 담당하는 private 헬퍼 메서드.
      *
-     * @param categoryToUpdate  변경 대상 카테고리 엔티티
-     * @param newParentId       새로운 부모 카테고리 ID (null일 경우 최상위로 변경)
+     * @param categoryToUpdate 변경 대상 카테고리 엔티티
+     * @param newParentId      새로운 부모 카테고리 ID (null일 경우 최상위로 변경)
      */
     private void updateParentCategory(Category categoryToUpdate, Long newParentId) {
         // 현재 부모 ID를 가져옵니다. (null일 수 있음)
@@ -258,10 +270,10 @@ public class CategoryService {
      * 카테고리 삭제
      *
      * @param categoryId 카테고리 ID
-     * @return           카테고리 ID 리턴.
+     * @return 카테고리 ID 리턴.
      */
     @Transactional
-    public Long deleteCategory(Long categoryId){
+    public Long deleteCategory(Long categoryId) {
 
         // 삭제할 카테고리 존재 확인
         if (!categoryRepo.existsById(categoryId)) {
@@ -272,5 +284,4 @@ public class CategoryService {
 
         return categoryId;
     }
-
 }

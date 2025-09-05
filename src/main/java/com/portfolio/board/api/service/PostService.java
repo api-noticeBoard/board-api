@@ -46,6 +46,23 @@ public class PostService {
     }
 
     /**
+     * 카테고리 전체조회
+     *
+     * @return  전체 List 데이터
+     */
+    @Transactional(readOnly = true)
+    public PageDto.Response<PostDto.Response> getAllPost(PageDto.Request pageRequest){
+        // JPA
+//        return categoryRepo.findAll().stream()
+//                .map(CategoryDto.Response::from)
+//                .collect(Collectors.toList());
+        // MyBatis
+        List<PostDto.Response> content = postMapper.findAll(pageRequest);
+        if (content == null || content.isEmpty()) {throw new BusinessException(ErrorCode.CATEGORY_NOT_FOUND);}
+        return new PageDto.Response<>(content, pageRequest);
+    }
+
+    /**
      * 게시물ID로 단건조회
      *
      * @param postId 게시물ID

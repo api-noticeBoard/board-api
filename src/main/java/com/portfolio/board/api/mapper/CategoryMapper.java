@@ -1,6 +1,7 @@
 package com.portfolio.board.api.mapper;
 
 import com.portfolio.board.api.dto.CategoryDto;
+import com.portfolio.common.system.paging.PageDto;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -8,7 +9,8 @@ import java.util.List;
 
 @Mapper
 public interface CategoryMapper {
-    List<CategoryDto.Response> searchCategoryByKeywordXml(@Param("keyword") String keyword);
+    List<CategoryDto.Response> searchCategoryByKeywordXml(@Param("keyword") String keyword
+            , @Param("pageRequest") PageDto.Request pageRequest);
 
     List<CategoryDto.FlatNode> findAllCategoriesAsFlatList();
 
@@ -16,5 +18,5 @@ public interface CategoryMapper {
 
     CategoryDto.Response findById(@Param("categoryId") Long categoryId);
 
-    List<CategoryDto.Response> findAll();
+    List<CategoryDto.Response> findAll(@Param("pageRequest") PageDto.Request pageRequest);
 }

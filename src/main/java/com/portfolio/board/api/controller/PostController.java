@@ -38,9 +38,6 @@ public class PostController {
         PageDto.Response<PostDto.Response> response =
                 postService.searchPostByKeywordXml(keyword, pageRequest);
 
-        if (response.getContent().isEmpty())
-            throw new BusinessException(ErrorCode.CATEGORY_NOT_FOUND);
-
         return ResponseEntity.ok(response);
     }
 

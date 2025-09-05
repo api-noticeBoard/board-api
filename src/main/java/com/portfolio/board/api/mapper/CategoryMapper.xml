@@ -8,44 +8,11 @@
         <result property="parentId" column="parent_id"/>
         <result property="createdAt" column="created_at"/>
         <result property="modifiedAt" column="modified_at"/>
+        <result property="deletedAt" column="deleted_at"/>
         <result property="createdByName" column="created_by_Name"/>
         <result property="modifiedByName" column="modified_by_Name"/>
     </resultMap>
-    <!-- ========== 계층 구조(트리) 조회용 resultMap 및 재귀 쿼리 ========== -->
-    <!--
-        findChildrenByParentId select 쿼리를 재귀로 만들어 collection에 넣어줌
-        MyBatis가 그룹핑을 통해 계층 구조를 자동으로 조립해 줍니다.
-    -->
-<!--    <resultMap id="categoryTreeResultMap" type="com.portfolio.board.api.dto.CategoryDto$TreeResponse">-->
-<!--        <id property="id" column="id"/>-->
-<!--        <result property="name" column="name"/>-->
-<!--        <collection property="children" ofType="com.portfolio.board.api.dto.CategoryDto$TreeResponse"-->
-<!--                    column="id" select="findChildrenByParentId">-->
-<!--            <id property="id" column="child_id"/>-->
-<!--            <result property="name" column="child_name"/>-->
-<!--        </collection>-->
-<!--    </resultMap>-->
 
-<!--    <select id="findCategoryTree" resultMap="categoryTreeResultMap">-->
-<!--        SELECT-->
-<!--            id,-->
-<!--            name-->
-<!--        FROM category-->
-<!--        WHERE-->
-<!--            parent_id IS NULL-->
-<!--        ORDER BY-->
-<!--            id ASC-->
-<!--    </select>-->
-<!--    <select id="findChildrenByParentId" resultMap="categoryTreeResultMap">-->
-<!--        SELECT-->
-<!--            id,-->
-<!--            name-->
-<!--        FROM category-->
-<!--        WHERE-->
-<!--            parent_id = #{parentId}-->
-<!--        ORDER BY-->
-<!--            id ASC-->
-<!--    </select>-->
     <select id="findAllCategoriesAsFlatList" resultType="com.portfolio.board.api.dto.CategoryDto$FlatNode">
         WITH RECURSIVE category_hierarchy (id, name, parentId) AS (
 <!--        1. 시작점(Anchor): 최상위 카테고리(parent_id가 null)를 선택합니다.-->
@@ -85,7 +52,6 @@
         LEFT JOIN MEMBER c ON a.modified_by = c.id
         WHERE UPPER(a.name) LIKE CONCAT('%', UPPER(#{keyword}), '%')
             OR UPPER(a.id) LIKE CONCAT('%', UPPER(#{keyword}), '%')
-        ORDER BY a.created_at DESC
     </select>
     <select id="findByName" parameterType="string" resultMap="categoryResultMap">
         SELECT
@@ -100,7 +66,6 @@
         LEFT JOIN MEMBER b ON a.created_by = b.id
         LEFT JOIN MEMBER c ON a.modified_by = c.id
         WHERE UPPER(a.name) LIKE CONCAT('%', UPPER(#{categoryName}), '%')
-        ORDER BY a.created_at DESC
     </select>
     <select id="findById" parameterType="Long" resultMap="categoryResultMap">
         SELECT
@@ -115,7 +80,6 @@
         LEFT JOIN MEMBER b ON a.created_by = b.id
         LEFT JOIN MEMBER c ON a.modified_by = c.id
         WHERE a.id = #{categoryId}
-        ORDER BY a.created_at DESC
     </select>
     <select id="findAll" resultMap="categoryResultMap">
         SELECT
@@ -129,6 +93,5 @@
         FROM category a
         LEFT JOIN MEMBER b ON a.created_by = b.id
         LEFT JOIN MEMBER c ON a.modified_by = c.id
-        ORDER BY a.created_at DESC
     </select>
 </mapper>

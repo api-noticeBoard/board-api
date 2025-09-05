@@ -2,8 +2,7 @@ package com.portfolio.board.api.controller;
 
 import com.portfolio.board.api.dto.CategoryDto;
 import com.portfolio.board.api.service.CategoryService;
-import com.portfolio.common.system.exception.BusinessException;
-import com.portfolio.common.system.exception.ErrorCode;
+import com.portfolio.common.system.paging.PageDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -39,17 +38,16 @@ public class CategoryController {
      */
     @GetMapping("/search")
     @Operation(summary = "keyword로 카테고리 검색", description = "keyword 검색")
-    public ResponseEntity<List<CategoryDto.Response>> searchCategoryByKeywordXml(@Parameter(description = "keyword 검색", example = "TEST")
-                                                                             @RequestParam(value = "keyword", required = false) String keyword){
-        List<CategoryDto.Response> categoryResponses;
-        if (keyword != null && !keyword.trim().isEmpty()) {
-            categoryResponses = categoryService.searchCategoryByKeywordXml(keyword);
-        } else {
-            categoryResponses = categoryService.getAllCategories();
-        }
-        if (categoryResponses.isEmpty())    throw new BusinessException(ErrorCode.CATEGORY_NOT_FOUND);
+    public ResponseEntity<PageDto.Response<CategoryDto.Response>> searchCategoryByKeywordXml(@Parameter(description = "keyword 검색", example = "TEST")
+                                                                             @RequestParam(value = "keyword", required = false) String keyword,
+                                                                            @Parameter(description = "페이지 요청 정보")
+                                                                            @ModelAttribute PageDto.Request pageRequest){
+        PageDto.Response<CategoryDto.Response> responses =
+                categoryService.searchCategoryByKeywordXml(keyword, pageRequest);
 
-        return ResponseEntity.ok(categoryResponses);
+
+
+        return ResponseEntity.ok(responses);
     }
 
     /**

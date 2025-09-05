@@ -22,6 +22,7 @@ public class CategoryDto {
 
     @Getter
     @Setter
+    @Schema(name = "CategoryCreateRequest", description = "카테고리 생성을 위한 요청 DTO")
     public static class CreateRequest {
         @NotBlank(message = "카테고리 이름은 필수입니다.")
         @Size(max = 20, message = "이름은 20자를 넘을 수 없습니다.")
@@ -33,6 +34,7 @@ public class CategoryDto {
     }
 
     @Getter @Setter
+    @Schema(name = "CategoryUpdateRequest", description = "카테고리 수정을 위한 요청 DTO")
     public static class UpdateRequest {
         @NotBlank(message = "카테고리 이름은 필수입니다.")
         @Size(max = 20, message = "이름은 20자를 넘을 수 없습니다.")

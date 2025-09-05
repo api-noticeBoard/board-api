@@ -13,6 +13,7 @@ public class PostDto {
 
     // --- 요청(Request) DTOs ---
     @Getter @Setter
+    @Schema(name = "PostCreateRequest", description = "게시글 생성을 위한 DTO")
     public static class CreateRequest {
         @NotBlank(message = "제목은 비어 있을 수 없습니다.")
         @Size(max = 100, message = "제목은 100자를 넘을 수 없습니다.")
@@ -31,6 +32,7 @@ public class PostDto {
     }
 
     @Getter @Setter
+    @Schema(name = "PostUpdateRequest", description = "게시글 수정을 위한 DTO")
     public static class UpdateRequest {
         @NotBlank(message = "제목은 비어 있을 수 없습니다.")
         @Size(max = 100, message = "제목은 100자를 넘을 수 없습니다.")
