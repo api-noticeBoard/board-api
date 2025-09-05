@@ -207,6 +207,10 @@ public class PostService {
         return new PageDto.Response<>(deletedPostPage, pageRequest);
     }
 
+    public List<PostDto.Response> getAllPostsForExcel(String keyword) {
+        return postMapper.searchPostByKeywordXml(keyword, null);
+    }
+
     /**
      * 유저 및 관리자 판별 help method
      * @param post
@@ -219,6 +223,5 @@ public class PostService {
 
         return isAdmin || isAuthor;
     }
-
 
 }

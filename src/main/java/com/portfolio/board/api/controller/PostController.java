@@ -5,15 +5,19 @@ import com.portfolio.board.api.service.PostService;
 import com.portfolio.common.system.exception.BusinessException;
 import com.portfolio.common.system.exception.ErrorCode;
 import com.portfolio.common.system.paging.PageDto;
+import com.portfolio.common.system.util.ExcelUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.net.URI;
+import java.util.List;
 
 @Tag(name = "Post", description = "게시글 관련 API")
 @RestController
@@ -144,4 +148,17 @@ public class PostController {
         return ResponseEntity.noContent().build();
     }
 
+    /**
+     * 현재 조회한 데이터 엑셀로 다운로드.
+     * @param keyword
+     * @param response
+     * @throws IOException
+     */
+    @GetMapping("/excel-download")
+    public void downloadPostListAsExcel(@RequestParam(required = false) String keyword, HttpServletResponse response) throws IOException{
+        // 1. 엑셀로 만들 데이터 조회
+        List<PostDto.Response> postList = postService.getAllPostsForExcel(keyword);    // 페이징 없는 전체목록 조회
+        // 2. 시스템 공통 유틸 호출
+        ExcelUtils.downloadExcel(postList, PostDto.Response.class, "게시글_목록", response);
+    }
 }
