@@ -18,4 +18,6 @@ public interface PostMapper {
     Optional<PostDto.Response> findById(@Param("postId") Long postId);
 
     List<PostDto.Response> findAll(@Param("pageRequest") PageDto.Request pageRequest); // ✨ 페이징 객체 명시
+
+    List<PostDto.Response> findDeletedPosts(@Param("currentUserName")String currentUserName, @Param("pageRequest")PageDto.Request pageRequest);
 }

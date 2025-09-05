@@ -9,8 +9,9 @@
         <result property="categoryName" column="category_name"/>
         <result property="createdAt" column="created_at"/>
         <result property="modifiedAt" column="modified_at"/>
-        <result property="createdByName" column="created_by_Name"/>
-        <result property="modifiedByName" column="modified_by_Name"/>
+        <result property="deletedAt" column="deleted_at"/>
+        <result property="createdByName" column="created_by_name"/>
+        <result property="modifiedByName" column="modified_by_name"/>
     </resultMap>
     
     <select id="searchPostByKeywordXml" parameterType="string" resultMap="postResultMap">
@@ -23,18 +24,18 @@
             , a.created_by
             , a.modified_at
             , a.modified_by
-            , c.name            AS created_by_Name
-            , d.name            AS modified_by_Name
+            , c.name            AS created_by_name
+            , d.name            AS modified_by_name
         FROM
             post a
         LEFT JOIN category b ON a.category_id = b.id
         LEFT JOIN MEMBER c ON a.created_by = c.id
         LEFT JOIN MEMBER d ON a.modified_by = d.id
-        WHERE
-            UPPER(a.title) LIKE CONCAT('%', UPPER(#{keyword}), '%')
+        WHERE a.deleted_at IS NULL
+            AND (UPPER(a.title) LIKE CONCAT('%', UPPER(#{keyword}), '%')
             OR UPPER(a.content) LIKE CONCAT('%', UPPER(#{keyword}), '%')
-            OR UPPER(b.name) LIKE CONCAT('%', UPPER(#{keyword}), '%')
-        ORDER BY a.id DESC
+            OR UPPER(b.name) LIKE CONCAT('%', UPPER(#{keyword}), '%'))
+<!--        ORDER BY a.id DESC-->
     </select>
     <select id="findById" parameterType="Long" resultMap="postResultMap">
         SELECT
@@ -44,14 +45,14 @@
         , b.name            AS category_name
         , a.created_at
         , a.modified_at
-        , c.name            AS created_by_Name
-        , d.name            AS modified_by_Name
+        , c.name            AS created_by_name
+        , d.name            AS modified_by_name
         FROM post a
         LEFT JOIN category b ON a.category_id = b.id
         LEFT JOIN MEMBER c ON a.created_by = c.id
         LEFT JOIN MEMBER d ON a.modified_by = d.id
         WHERE a.id = #{postId}
-        ORDER BY a.id DESC
+            AND a.deleted_at IS NULL
     </select>
     <select id="findAll" resultMap="postResultMap">
         SELECT
@@ -61,12 +62,30 @@
         , b.name            AS category_name
         , a.created_at
         , a.modified_at
-        , c.name            AS created_by_Name
-        , d.name            AS modified_by_Name
+        , c.name            AS created_by_name
+        , d.name            AS modified_by_name
         FROM post a
         LEFT JOIN category b ON a.category_id = b.id
         LEFT JOIN MEMBER c ON a.created_by = c.id
         LEFT JOIN MEMBER d ON a.modified_by = d.id
-        ORDER BY a.id DESC
+        WHERE a.deleted_at IS NULL
+<!--        ORDER BY a.id DESC-->
+    </select>
+    <select id="findDeletedPosts" resultMap="postResultMap">
+        SELECT
+        a.id
+        , a.title
+        , a.content
+        , b.name            AS category_name
+        , a.created_at
+        , a.modified_at
+        , c.name            AS created_by_name
+        , d.name            AS modified_by_name
+        FROM post a
+        LEFT JOIN category b ON a.category_id = b.id
+        LEFT JOIN MEMBER c ON a.created_by = c.id
+        LEFT JOIN MEMBER d ON a.modified_by = d.id
+        WHERE a.deleted_at IS NOT NULL
+        AND c.username = #{currentUserName}
     </select>
 </mapper>

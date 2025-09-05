@@ -6,10 +6,13 @@ import com.portfolio.board.api.dto.PostDto;
 import com.portfolio.board.api.mapper.PostMapper;
 import com.portfolio.board.api.repository.CategoryRepository;
 import com.portfolio.board.api.repository.PostRepository;
+import com.portfolio.common.business.user.AuthUser;
+import com.portfolio.common.business.user.UserInfoHolder;
 import com.portfolio.common.system.exception.BusinessException;
 import com.portfolio.common.system.exception.ErrorCode;
 import com.portfolio.common.system.paging.PageDto;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Optional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class PostService {
@@ -48,33 +52,18 @@ public class PostService {
      * @return 응답 데이터 리턴.
      */
     @Transactional(readOnly = true)
-    public Optional<PostDto.Response> getPostById(@Param("postId") Long postId) {
+    public PostDto.Response getPostById(@Param("postId") Long postId) {
         // JPA
 //        Post post = postRepo.findById(postId)
 //                .orElseThrow(()-> new BusinessException(ErrorCode.POST_NOT_FOUND));
 //
 //        return new PostResponse(post);
         // MyBatis
-        return postMapper.findById(postId);
+        Optional<PostDto.Response> response = postMapper.findById(postId);
+
+        return response.orElseThrow(()-> new BusinessException(ErrorCode.POST_NOT_FOUND));
     }
 
-
-//    /**
-//     * 게시글 전체조회
-//     *
-//     * @return 전체 List 데이터
-//     */
-////    @Paging
-//    @Transactional(readOnly = true)
-//    public PageDto.Response<PostDto.Response> getAllPosts(PageDto.Request pageRequest) {
-//        // JPA
-////        return postRepo.findAll().stream()
-////                .map(PostResponse::new)
-////                .collect(Collectors.toList());
-//        // MyBatis
-//
-//        return postMapper.findAll();
-//    }
 
     /**
      * 새로운 게시글을 생성합니다.
@@ -140,20 +129,79 @@ public class PostService {
     }
 
     /**
-     * 게시물 삭제
+     * 게시물 soft 삭제
      *
-     * @param postId 게시물 ID
-     * @return 게시물 ID 리턴.
+     * @param postId
      */
     @Transactional
-    public Long deletePost(Long postId) {
+    public void softDeletePost(Long postId) {
+        AuthUser currentUser = UserInfoHolder.getAuthUser(); // 현재 로그인 정보
+        Post post = postRepo.findById(postId)
+                .orElseThrow(()-> new BusinessException(ErrorCode.POST_NOT_FOUND));
 
-        // 게시글 존재 확인
-        if (!postRepo.existsById(postId)) {
-            throw new BusinessException(ErrorCode.POST_NOT_FOUND);
+        // 관리자 및 작성자만 삭제 가능
+        if (!isAuthorOrAdmin(post, currentUser)){
+            throw new BusinessException(ErrorCode.ACCESS_DENIED);
         }
-        postRepo.deleteById(postId);
-
-        return postId;
+        // setDeletedAt
+        post.softDelete();
     }
+
+    @Transactional
+    public void hardDeletePost(Long postId) {
+        AuthUser currentUser = UserInfoHolder.getAuthUser();
+        // ✨ Hard Delete는 삭제된 게시글도 대상이 될 수 있으므로, JPA 기본 findById를 우회해야 함
+        // 여기서는 우선 삭제되지 않은 게시글만 영구 삭제한다고 가정.
+        Post post = postRepo.findById(postId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.POST_NOT_FOUND));
+
+        // ✨ 권한 검사: 관리자이거나, 게시글 작성자인 경우에만 영구 삭제 가능
+        if (!isAuthorOrAdmin(post, currentUser)) {
+            throw new BusinessException(ErrorCode.ACCESS_DENIED);
+        }
+
+        postRepo.delete(post); // 실제 DELETE 쿼리 실행
+    }
+
+    @Transactional
+    public void restorePost(Long postId) {
+        AuthUser currentUser = UserInfoHolder.getAuthUser();
+        Post post = postRepo.findById(postId)
+                .orElseThrow(()-> new BusinessException(ErrorCode.POST_NOT_FOUND));
+        // 관리자 및 작성자만 복구 가능
+        if (!isAuthorOrAdmin(post, currentUser)){
+            throw new BusinessException(ErrorCode.ACCESS_DENIED);
+        }
+        // setDeletedAt
+        post.restore();
+    }
+
+    /**
+     * 삭제된 게시글 조회
+     *
+     * @param pageRequest
+     * @return
+     */
+    @Transactional(readOnly = true)
+    public PageDto.Response<PostDto.Response> findDeletedPosts(PageDto.Request pageRequest) {
+        String currentUserName = UserInfoHolder.getUsername();
+        List<PostDto.Response> deletedPostPage = postMapper.findDeletedPosts(currentUserName, pageRequest);
+
+        return new PageDto.Response<>(deletedPostPage, pageRequest);
+    }
+
+    /**
+     * 유저 및 관리자 판별 help method
+     * @param post
+     * @param user
+     * @return
+     */
+    private boolean isAuthorOrAdmin(Post post, AuthUser user){
+        boolean isAdmin = user.roles().contains("ROLE_ADMIN");
+        boolean isAuthor = post.getCreatedBy().equals(user.userId());
+
+        return isAdmin || isAuthor;
+    }
+
+
 }

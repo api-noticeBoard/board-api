@@ -4,6 +4,8 @@ import com.portfolio.common.business.audit.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Getter @Setter
 @Builder
@@ -41,4 +43,7 @@ public class Post extends BaseEntity {
         this.title = title;
         this.content = content;
     }
+
+    public void softDelete(){this.setDeletedAt(LocalDateTime.now());}
+    public void restore(){this.setDeletedAt(null);}
 }

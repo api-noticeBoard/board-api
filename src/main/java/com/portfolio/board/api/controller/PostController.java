@@ -14,7 +14,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
-import java.util.Optional;
 
 @Tag(name = "Post", description = "게시글 관련 API")
 @RestController
@@ -53,7 +52,7 @@ public class PostController {
      */
     @GetMapping("/search/{postId}")
     @Operation(summary = "게시물 단건조회", description = "게시글")
-    public ResponseEntity<Optional<PostDto.Response>> getPostById(@Parameter(description = "게시물 ID", example = "1")
+    public ResponseEntity<PostDto.Response> getPostById(@Parameter(description = "게시물 ID", example = "1")
                                                         @PathVariable Long postId){
         if (postId == null || postId <= 0) throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE);
 
@@ -103,6 +102,26 @@ public class PostController {
     }
 
     /**
+     * 휴지통 게시글 목록 조회 API
+     */
+    @GetMapping("/trash")
+    @Operation(summary = "휴지통 게시글 목록 조회", description = "내가 삭제한 게시글 목록을 페이징하여 조회합니다.")
+    public ResponseEntity<PageDto.Response<PostDto.Response>> getMyDeletedPosts(@ModelAttribute PageDto.Request pageRequest) {
+        PageDto.Response<PostDto.Response> deletedPosts = postService.findDeletedPosts(pageRequest);
+        return ResponseEntity.ok(deletedPosts);
+    }
+
+    /**
+     * 휴지통 게시글 복원 API
+     */
+    @PostMapping("/{postId}/restore")
+    @Operation(summary = "게시글 복원", description = "휴지통의 게시글을 복원합니다. 작성자 또는 관리자만 가능합니다.")
+    public ResponseEntity<Void> restorePost(@PathVariable Long postId) {
+        postService.restorePost(postId);
+        return ResponseEntity.ok().build();
+    }
+
+    /**
      * 게시글 삭제
      *
      * @param postId    게시글 ID
@@ -112,8 +131,19 @@ public class PostController {
     @Operation(summary = "게시글 삭제", description = "게시글ID의 삭제")
     public ResponseEntity<Void> deletePost(@Parameter(description = "삭제할 ID", example = "1")
                                            @PathVariable Long postId){
-        postService.deletePost(postId);
+        postService.softDeletePost(postId);
+        return ResponseEntity.noContent().build();
+    }
 
+    /**
+     * 특정 게시글 영구 삭제 (Hard Delete)
+     */
+    @DeleteMapping("/{postId}/permanent")
+    @Operation(summary = "게시글 영구 삭제 (관리자)", description = "게시글을 물리적으로 완전히 삭제합니다.")
+    public ResponseEntity<Void> deletePostPermanently(@PathVariable Long postId) {
+        // 이 API는 관리자만 호출할 수 있지만, 서비스 계층에서 한 번 더 권한 검사를 하는 것이 안전합니다.
+        // 여기서는 hardDeletePost가 작성자/관리자 모두 가능하므로 그냥 호출합니다.
+        postService.hardDeletePost(postId);
         return ResponseEntity.noContent().build();
     }
 
