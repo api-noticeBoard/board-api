@@ -17,8 +17,11 @@ import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -208,6 +211,8 @@ public class PostService {
     }
 
     public List<PostDto.Response> getAllPostsForExcel(String keyword) {
+        // pageRequest를 null로 전달하여 페이징이 적용되지 않도록 합니다.
+        // (인터셉터가 pageRequest가 null이면 페이징을 건너뜁니다.)
         return postMapper.searchPostByKeywordXml(keyword, null);
     }
 
@@ -224,4 +229,55 @@ public class PostService {
         return isAdmin || isAuthor;
     }
 
+    /**
+     * ✨ [신규] 엑셀 파일로부터 변환된 DTO 리스트를 받아 여러 게시글을 한 번에 생성합니다.
+     * @Transactional 어노테이션을 통해, 모든 데이터가 성공적으로 저장되거나 하나라도 실패하면 전체가 롤백됩니다.
+     *
+     * @param postDtoList 엑셀에서 변환된 DTO 목록
+     * @return 성공적으로 저장된 게시글의 수
+     */
+    @Transactional
+    public int createPostsInBulk(List<PostDto.UploadRequest> postDtoList) {
+
+        if (postDtoList == null || postDtoList.isEmpty()) {
+            throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE, ": 업로드할 데이터가 없습니다.");
+        }
+
+        // DB반복 호출 방지위한 카테고리ID 조회
+        List<Long> categoryIds = postDtoList.stream()
+                .map(PostDto.UploadRequest::getCategoryId)
+                .distinct()
+                .toList();
+        Map<Long, Category> categoryMap = categoryRepo.findAllById(categoryIds).stream()
+                .collect(Collectors.toMap(Category::getId, category -> category));
+
+        // DTO 리스트 -> Post Entity로 변환
+        List<Post> postsToSave = new ArrayList<>();
+        int rowNum = 1; // 엑셀 행 번호 (헤더 제외)
+        for (PostDto.UploadRequest dto : postDtoList){
+            rowNum++;
+            // 유효성 검증
+            if (dto.getTitle() == null || dto.getTitle().isBlank()) {
+                throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE, ": " + rowNum + "번째 행의 제목이 비어있습니다.");
+            }
+            Category category = categoryMap.get(dto.getCategoryId());
+            if (dto.getCategoryId() == null) {
+                throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE, ": " + rowNum + "번째 행의 카테고리가 비어있습니다.");
+            }
+
+            // Post Entity 생성
+            Post newPost = Post.builder()
+                    .title(dto.getTitle())
+                    .content(dto.getContent())
+                    .category(category)
+                    .build();
+            postsToSave.add(newPost);
+        }
+
+        // JPA의 saveAll 사용해 한번에 저장
+        List<Post> savePost = postRepo.saveAll(postsToSave);
+
+        // 성공한 게시글 수 반환
+        return savePost.size();
+    }
 }

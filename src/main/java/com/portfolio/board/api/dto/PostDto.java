@@ -83,4 +83,16 @@ public class PostDto {
                     .build();
         }
     }
+
+    @Getter
+    @Setter@NoArgsConstructor
+    public static class UploadRequest{
+        @ExcelColumn(colIndex = 0)  // A열
+        private String title;
+        @ExcelColumn(colIndex = 1)  // B열
+        private String content;
+        @ExcelColumn(colIndex = 2)  // C열
+        private Long categoryId;
+
+    }
 }

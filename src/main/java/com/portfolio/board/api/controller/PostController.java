@@ -12,13 +12,16 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.net.URI;
+import java.time.LocalDate;
 import java.util.List;
-
+@Slf4j
 @Tag(name = "Post", description = "게시글 관련 API")
 @RestController
 @RequestMapping("/api/v1/posts")
@@ -155,10 +158,36 @@ public class PostController {
      * @throws IOException
      */
     @GetMapping("/excel-download")
-    public void downloadPostListAsExcel(@RequestParam(required = false) String keyword, HttpServletResponse response) throws IOException{
-        // 1. 엑셀로 만들 데이터 조회
+    @Operation(summary = "엑셀로 다운로드", description = "검색한 데이터를 엑셀로 변환 다운로드")
+    public void downloadPostListAsExcel(@RequestParam(required = false) String keyword, @RequestParam(required = false) String fileName, HttpServletResponse response) throws IOException{
+
+        // fileName이 없는 경우
+        if (fileName == null || fileName.isBlank()) {
+            fileName = "excel-download";
+        }
+        // fileName + 생성일자
+        fileName += "_" + LocalDate.now();
+
+        // 1. 엑셀로 만들 데이터 조회 (페이징 없음)
         List<PostDto.Response> postList = postService.getAllPostsForExcel(keyword);    // 페이징 없는 전체목록 조회
         // 2. 시스템 공통 유틸 호출
-        ExcelUtils.downloadExcel(postList, PostDto.Response.class, "게시글_목록", response);
+        ExcelUtils.downloadExcel(postList, PostDto.Response.class, fileName, response);
+    }
+
+    @PostMapping(value = "/excel-upload", consumes = "multipart/form-data")
+    @Operation(summary = "엑셀파일 게시글 업로드", description = "엑셀 파일의 게시글 데이터를 업로드")
+    public ResponseEntity<String> uploadPostsFromExcel(@RequestParam("file")MultipartFile file){
+        log.info("file: {}", file);
+        if (file.isEmpty()) {
+            throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE, "엑셀 파일이 비어있습니다.");
+        }
+
+        // 1. 시스템 공통 유틸리티를 호출하여 엑셀 파일을 DTO 리스트로 변환
+        List<PostDto.UploadRequest> postDtoList = ExcelUtils.uploadExcel(file, PostDto.UploadRequest.class);
+
+        // 2. 변환된 DTO 리스트를 서비스에 전달하여 DB에 저장
+        int count = postService.createPostsInBulk(postDtoList);
+
+        return ResponseEntity.ok(count + "개의 게시글이 성공적으로 등록되었습니다.");
     }
 }
