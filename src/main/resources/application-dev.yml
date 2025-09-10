@@ -20,11 +20,16 @@ spring:
       path: /h2-console
   datasource:
     # TODO: DB서버로 변경 예정
+    # Oracle Autonomous Database
+    url: jdbc:oracle:thin:@(description= (retry_count=20)(retry_delay=3)(address=(protocol=tcps)(port=1522)(host=adb.ap-chuncheon-1.oraclecloud.com))(connect_data=(service_name=gde55684cd674ef_boarddb_medium.adb.oraclecloud.com))(security=(ssl_server_dn_match=yes)))
+    username: ADMIN
+    password: ${BOARD_DB_PASSWORD}
+    driver-class-name: oracle.jdbc.driver.OracleDriver
     # 로컬 개발 시 재시작해도 데이터가 유지되도록 파일 기반 H2를 사용합니다.
-    url: jdbc:h2:file:./data/h2demo;AUTO_SERVER=TRUE
-    driver-class-name: org.h2.Driver
-    username: sa
-    password:
+#    url: jdbc:h2:file:./data/h2demo;AUTO_SERVER=TRUE
+#    driver-class-name: org.h2.Driver
+#    username: sa
+#    password:
   jpa:
     database-platform: org.hibernate.dialect.H2Dialect
     hibernate:

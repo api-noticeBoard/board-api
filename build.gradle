@@ -64,6 +64,9 @@ repositories {
 }
 
 dependencies {
+	// Oracle JDBC Driver for Autonomous Database (includes wallet libraries)
+	implementation 'com.oracle.database.jdbc:ojdbc11-production:23.4.0.24.05' // 최신 버전 확인 권장
+
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'	// JPA
 	implementation 'org.springframework.boot:spring-boot-starter-web'		//
 	// 유효성 검증

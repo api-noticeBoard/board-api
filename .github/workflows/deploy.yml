@@ -1,0 +1,37 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches: [ "dev", "test", "main" ] # dev, test, main 브랜치에 push 되면 실행
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      # 1. 소스 코드 체크아웃
+      - uses: actions/checkout@v4
+
+      # 2. JDK 설정
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      # 3. Gradle 빌드 (가장 중요)
+      #    테스트 코드가 DB에 접속해야 한다면 이 단계에서 환경 변수가 필요.
+      - name: Build with Gradle
+        # env 블록을 통해 GitHub Secret을 환경 변수로 주입.
+        env:
+          DB_PASSWORD: ${{ secrets.BOARD_DB_PASSWORD }}
+        run: ./gradlew build
+
+      # 4. 실제 배포 단계 (예: Docker 이미지 빌드 후 Push 또는 EC2에 배포)
+      #    이 단계에서도 애플리케이션을 실행해야 하므로 동일하게 환경 변수를 주입.
+      - name: Deploy to Server
+        env:
+          DB_PASSWORD: ${{ secrets.BOARD_DB_PASSWORD }}
+        run: |
+          # 여기에 실제 배포 스크립트를 작성합니다.
+          # 예: ssh, scp, docker push 등
+          echo "Deploying to server..."
