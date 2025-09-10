@@ -194,13 +194,14 @@ public class CategoryService {
      */
     @Transactional
     public CategoryDto.Response updateCategory(Long categoryId, CategoryDto.UpdateRequest requestDto) { // ✨ DTO 타입 수정
+
         // 수정할 카테고리 조회
         Category categoryToUpdate = categoryRepo.findById(categoryId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.CATEGORY_NOT_FOUND));
 
         // 수정하려는 이름이 이미 존재하는지 확인
         Optional<Category> existingCategory = categoryRepo.findByName(requestDto.getName());
-        if (existingCategory.isPresent() && !existingCategory.get().getId().equals(categoryId)) {
+        if (existingCategory.isPresent() && existingCategory.get().getName().equals(requestDto.getName())) {
             // 다른 카테고리가 이미 그 이름을 사용 중인 경우
             throw new BusinessException(ErrorCode.CATEGORY_DUPLICATIED);
         }
@@ -229,7 +230,10 @@ public class CategoryService {
         }
 
         // 새로운 부모 카테고리를 설정합니다.
-        if (newParentId != null) {
+        if (newParentId == null || newParentId == 0) {
+            // (3-4) newParentId가 null이면, 최상위 카테고리로 변경하는 것이므로 부모를 null로 설정합니다.
+            categoryToUpdate.changeParent(null);
+        } else {
             // (3-1) 새로운 부모가 될 카테고리를 DB에서 조회합니다.
             Category newParent = categoryRepo.findById(newParentId)
                     .orElseThrow(() -> new BusinessException(ErrorCode.CATEGORY_NOT_FOUND));
@@ -239,9 +243,6 @@ public class CategoryService {
 
             // (3-3) 검사를 통과하면, 새로운 부모를 설정합니다.
             categoryToUpdate.changeParent(newParent);
-        } else {
-            // (3-4) newParentId가 null이면, 최상위 카테고리로 변경하는 것이므로 부모를 null로 설정합니다.
-            categoryToUpdate.changeParent(null);
         }
     }
 

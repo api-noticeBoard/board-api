@@ -41,3 +41,6 @@ gradle.properties
 
 ### DB Data ###
 data
+
+### local secret config ###
+/src/main/resources/application-local.yml

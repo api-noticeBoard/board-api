@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- Oracle grammar -->
 <mapper namespace="com.portfolio.board.api.mapper.CategoryMapper">
     <resultMap id="categoryResultMap" type="com.portfolio.board.api.dto.CategoryDto$Response">
         <id property="id" column="id"/>
@@ -14,8 +15,9 @@
     </resultMap>
 
     <select id="findAllCategoriesAsFlatList" resultType="com.portfolio.board.api.dto.CategoryDto$FlatNode">
-        WITH RECURSIVE category_hierarchy (id, name, parentId) AS (
-<!--        1. 시작점(Anchor): 최상위 카테고리(parent_id가 null)를 선택합니다.-->
+        <!-- [ORACLE 수정] RECURSIVE 키워드를 제거했습니다. Oracle은 RECURSIVE 키워드 없이 재귀 CTE를 지원합니다. -->
+        WITH category_hierarchy (id, name, parentId) AS (
+        <!--        1. 시작점(Anchor): 최상위 카테고리(parent_id가 null)를 선택합니다.-->
         SELECT
         id,
         name,
@@ -25,7 +27,7 @@
         WHERE
         parent_id IS NULL
         UNION ALL
-<!--        2. 재귀 부분(Recursive): 바로 위 단계에서 찾은 카테고리(ch)의 자식(c)을 찾습니다.-->
+        <!--        2. 재귀 부분(Recursive): 바로 위 단계에서 찾은 카테고리(ch)의 자식(c)을 찾습니다.-->
         SELECT
         c.id,
         c.name,
@@ -35,23 +37,25 @@
         INNER JOIN
         category_hierarchy ch ON c.parent_id = ch.id
         )
-<!--        3. 재귀적으로 찾은 모든 결과를 반환합니다.-->
-        SELECT * FROM category_hierarchy;
+        <!--        3. 재귀적으로 찾은 모든 결과를 반환합니다.-->
+        SELECT * FROM category_hierarchy
     </select>
     <select id="searchCategoryByKeywordXml" parameterType="string" resultMap="categoryResultMap">
         SELECT
-            a.id
-            , a.name
-            , a.created_at
-            , a.modified_at
-            , a.parent_id
-            , b.name            AS created_by_Name
-            , c.name            AS modified_by_Name
-        FROM category a
+        a.id
+        , a.name
+        , a.created_at
+        , a.modified_at
+        , a.parent_id
+        , b.name            AS created_by_Name
+        , c.name            AS modified_by_Name
+        FROM CATEGORY a
         LEFT JOIN MEMBER b ON a.created_by = b.id
         LEFT JOIN MEMBER c ON a.modified_by = c.id
-        WHERE UPPER(a.name) LIKE CONCAT('%', UPPER(#{keyword}), '%')
-            OR UPPER(a.id) LIKE CONCAT('%', UPPER(#{keyword}), '%')
+        <!-- [ORACLE 수정] CONCAT 함수를 Oracle의 표준 문자열 연결 연산자인 '||'로 변경했습니다. -->
+        <!-- [ORACLE 수정] 숫자 타입인 id 컬럼은 TO_CHAR로 변환하여 비교하는 것이 안전합니다. -->
+        WHERE UPPER(a.name) LIKE '%' || UPPER(#{keyword}) || '%'
+        OR TO_CHAR(a.id) LIKE '%' || UPPER(#{keyword}) || '%'
     </select>
     <select id="findByName" parameterType="string" resultMap="categoryResultMap">
         SELECT
@@ -65,7 +69,8 @@
         FROM category a
         LEFT JOIN MEMBER b ON a.created_by = b.id
         LEFT JOIN MEMBER c ON a.modified_by = c.id
-        WHERE UPPER(a.name) LIKE CONCAT('%', UPPER(#{categoryName}), '%')
+        <!-- [ORACLE 수정] CONCAT 함수를 '||' 연산자로 변경했습니다. -->
+        WHERE UPPER(a.name) LIKE '%' || UPPER(#{categoryName}) || '%'
     </select>
     <select id="findById" parameterType="Long" resultMap="categoryResultMap">
         SELECT
@@ -95,3 +100,98 @@
         LEFT JOIN MEMBER c ON a.modified_by = c.id
     </select>
 </mapper>
+<!-- H2DB grammar -->
+<!--<mapper namespace="com.portfolio.board.api.mapper.CategoryMapper">-->
+<!--    <resultMap id="categoryResultMap" type="com.portfolio.board.api.dto.CategoryDto$Response">-->
+<!--        <id property="id" column="id"/>-->
+<!--        <result property="name" column="name"/>-->
+<!--        <result property="parentId" column="parent_id"/>-->
+<!--        <result property="createdAt" column="created_at"/>-->
+<!--        <result property="modifiedAt" column="modified_at"/>-->
+<!--        <result property="deletedAt" column="deleted_at"/>-->
+<!--        <result property="createdByName" column="created_by_Name"/>-->
+<!--        <result property="modifiedByName" column="modified_by_Name"/>-->
+<!--    </resultMap>-->
+
+<!--    <select id="findAllCategoriesAsFlatList" resultType="com.portfolio.board.api.dto.CategoryDto$FlatNode">-->
+<!--        WITH RECURSIVE category_hierarchy (id, name, parentId) AS (-->
+<!--&lt;!&ndash;        1. 시작점(Anchor): 최상위 카테고리(parent_id가 null)를 선택합니다.&ndash;&gt;-->
+<!--        SELECT-->
+<!--        id,-->
+<!--        name,-->
+<!--        parent_id AS parentId &lt;!&ndash;DTO 필드명과 맞춰줍니다.&ndash;&gt;-->
+<!--        FROM-->
+<!--        category-->
+<!--        WHERE-->
+<!--        parent_id IS NULL-->
+<!--        UNION ALL-->
+<!--&lt;!&ndash;        2. 재귀 부분(Recursive): 바로 위 단계에서 찾은 카테고리(ch)의 자식(c)을 찾습니다.&ndash;&gt;-->
+<!--        SELECT-->
+<!--        c.id,-->
+<!--        c.name,-->
+<!--        c.parent_id AS parentId-->
+<!--        FROM-->
+<!--        category c-->
+<!--        INNER JOIN-->
+<!--        category_hierarchy ch ON c.parent_id = ch.id-->
+<!--        )-->
+<!--&lt;!&ndash;        3. 재귀적으로 찾은 모든 결과를 반환합니다.&ndash;&gt;-->
+<!--        SELECT * FROM category_hierarchy;-->
+<!--    </select>-->
+<!--    <select id="searchCategoryByKeywordXml" parameterType="string" resultMap="categoryResultMap">-->
+<!--        SELECT-->
+<!--            a.id-->
+<!--            , a.name-->
+<!--            , a.created_at-->
+<!--            , a.modified_at-->
+<!--            , a.parent_id-->
+<!--            , b.name            AS created_by_Name-->
+<!--            , c.name            AS modified_by_Name-->
+<!--        FROM category a-->
+<!--        LEFT JOIN MEMBER b ON a.created_by = b.id-->
+<!--        LEFT JOIN MEMBER c ON a.modified_by = c.id-->
+<!--        WHERE UPPER(a.name) LIKE CONCAT('%', UPPER(#{keyword}), '%')-->
+<!--            OR UPPER(a.id) LIKE CONCAT('%', UPPER(#{keyword}), '%')-->
+<!--    </select>-->
+<!--    <select id="findByName" parameterType="string" resultMap="categoryResultMap">-->
+<!--        SELECT-->
+<!--        a.id-->
+<!--        , a.name-->
+<!--        , a.created_at-->
+<!--        , a.modified_at-->
+<!--        , a.parent_id-->
+<!--        , b.name            AS created_by_Name-->
+<!--        , c.name            AS modified_by_Name-->
+<!--        FROM category a-->
+<!--        LEFT JOIN MEMBER b ON a.created_by = b.id-->
+<!--        LEFT JOIN MEMBER c ON a.modified_by = c.id-->
+<!--        WHERE UPPER(a.name) LIKE CONCAT('%', UPPER(#{categoryName}), '%')-->
+<!--    </select>-->
+<!--    <select id="findById" parameterType="Long" resultMap="categoryResultMap">-->
+<!--        SELECT-->
+<!--        a.id-->
+<!--        , a.name-->
+<!--        , a.created_at-->
+<!--        , a.modified_at-->
+<!--        , a.parent_id-->
+<!--        , b.name            AS created_by_Name-->
+<!--        , c.name            AS modified_by_Name-->
+<!--        FROM category a-->
+<!--        LEFT JOIN MEMBER b ON a.created_by = b.id-->
+<!--        LEFT JOIN MEMBER c ON a.modified_by = c.id-->
+<!--        WHERE a.id = #{categoryId}-->
+<!--    </select>-->
+<!--    <select id="findAll" resultMap="categoryResultMap">-->
+<!--        SELECT-->
+<!--        a.id-->
+<!--        , a.name-->
+<!--        , a.created_at-->
+<!--        , a.modified_at-->
+<!--        , a.parent_id-->
+<!--        , b.name            AS created_by_Name-->
+<!--        , c.name            AS modified_by_Name-->
+<!--        FROM category a-->
+<!--        LEFT JOIN MEMBER b ON a.created_by = b.id-->
+<!--        LEFT JOIN MEMBER c ON a.modified_by = c.id-->
+<!--    </select>-->
+<!--</mapper>-->

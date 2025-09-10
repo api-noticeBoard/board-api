@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- Oracle grammar -->
 <mapper namespace="com.portfolio.board.api.mapper.PostMapper">
     <resultMap id="postResultMap" type="com.portfolio.board.api.dto.PostDto$Response">
         <id property="id" column="id"/>
@@ -13,28 +14,29 @@
         <result property="createdByName" column="created_by_name"/>
         <result property="modifiedByName" column="modified_by_name"/>
     </resultMap>
-    
+
     <select id="searchPostByKeywordXml" parameterType="string" resultMap="postResultMap">
         SELECT
-            a.id
-            , a.title
-            , a.content
-            , b.name          as category_name
-            , a.created_at
-            , a.created_by
-            , a.modified_at
-            , a.modified_by
-            , c.name            AS created_by_name
-            , d.name            AS modified_by_name
+        a.id
+        , a.title
+        , a.content
+        , b.name            AS category_name
+        , a.created_at
+        , a.created_by
+        , a.modified_at
+        , a.modified_by
+        , c.name            AS created_by_name
+        , d.name            AS modified_by_name
         FROM
-            post a
+        post a
         LEFT JOIN category b ON a.category_id = b.id
         LEFT JOIN MEMBER c ON a.created_by = c.id
         LEFT JOIN MEMBER d ON a.modified_by = d.id
         WHERE a.deleted_at IS NULL
-            AND (UPPER(a.title) LIKE CONCAT('%', UPPER(#{keyword}), '%')
-            OR UPPER(a.content) LIKE CONCAT('%', UPPER(#{keyword}), '%')
-            OR UPPER(b.name) LIKE CONCAT('%', UPPER(#{keyword}), '%'))
+        <!-- [ORACLE 수정] CONCAT 함수를 '||' 연산자로 변경했습니다. -->
+        AND (UPPER(a.title) LIKE '%' || UPPER(#{keyword}) || '%'
+        OR UPPER(a.content) LIKE '%' || UPPER(#{keyword}) || '%'
+        OR UPPER(b.name) LIKE '%' || UPPER(#{keyword}) || '%')
     </select>
     <select id="findById" parameterType="Long" resultMap="postResultMap">
         SELECT
@@ -51,7 +53,7 @@
         LEFT JOIN MEMBER c ON a.created_by = c.id
         LEFT JOIN MEMBER d ON a.modified_by = d.id
         WHERE a.id = #{postId}
-            AND a.deleted_at IS NULL
+        AND a.deleted_at IS NULL
     </select>
     <select id="findAll" resultMap="postResultMap">
         SELECT
@@ -87,3 +89,90 @@
         AND c.username = #{currentUserName}
     </select>
 </mapper>
+<!-- H2DB grammar -->
+<!--<mapper namespace="com.portfolio.board.api.mapper.PostMapper">-->
+<!--    <resultMap id="postResultMap" type="com.portfolio.board.api.dto.PostDto$Response">-->
+<!--        <id property="id" column="id"/>-->
+<!--        <result property="title" column="title"/>-->
+<!--        <result property="content" column="content"/>-->
+<!--        <result property="categoryName" column="category_name"/>-->
+<!--        <result property="createdAt" column="created_at"/>-->
+<!--        <result property="modifiedAt" column="modified_at"/>-->
+<!--        <result property="deletedAt" column="deleted_at"/>-->
+<!--        <result property="createdByName" column="created_by_name"/>-->
+<!--        <result property="modifiedByName" column="modified_by_name"/>-->
+<!--    </resultMap>-->
+<!--    -->
+<!--    <select id="searchPostByKeywordXml" parameterType="string" resultMap="postResultMap">-->
+<!--        SELECT-->
+<!--            a.id-->
+<!--            , a.title-->
+<!--            , a.content-->
+<!--            , b.name          as category_name-->
+<!--            , a.created_at-->
+<!--            , a.created_by-->
+<!--            , a.modified_at-->
+<!--            , a.modified_by-->
+<!--            , c.name            AS created_by_name-->
+<!--            , d.name            AS modified_by_name-->
+<!--        FROM-->
+<!--            post a-->
+<!--        LEFT JOIN category b ON a.category_id = b.id-->
+<!--        LEFT JOIN MEMBER c ON a.created_by = c.id-->
+<!--        LEFT JOIN MEMBER d ON a.modified_by = d.id-->
+<!--        WHERE a.deleted_at IS NULL-->
+<!--            AND (UPPER(a.title) LIKE CONCAT('%', UPPER(#{keyword}), '%')-->
+<!--            OR UPPER(a.content) LIKE CONCAT('%', UPPER(#{keyword}), '%')-->
+<!--            OR UPPER(b.name) LIKE CONCAT('%', UPPER(#{keyword}), '%'))-->
+<!--    </select>-->
+<!--    <select id="findById" parameterType="Long" resultMap="postResultMap">-->
+<!--        SELECT-->
+<!--        a.id-->
+<!--        , a.title-->
+<!--        , a.content-->
+<!--        , b.name            AS category_name-->
+<!--        , a.created_at-->
+<!--        , a.modified_at-->
+<!--        , c.name            AS created_by_name-->
+<!--        , d.name            AS modified_by_name-->
+<!--        FROM post a-->
+<!--        LEFT JOIN category b ON a.category_id = b.id-->
+<!--        LEFT JOIN MEMBER c ON a.created_by = c.id-->
+<!--        LEFT JOIN MEMBER d ON a.modified_by = d.id-->
+<!--        WHERE a.id = #{postId}-->
+<!--            AND a.deleted_at IS NULL-->
+<!--    </select>-->
+<!--    <select id="findAll" resultMap="postResultMap">-->
+<!--        SELECT-->
+<!--        a.id-->
+<!--        , a.title-->
+<!--        , a.content-->
+<!--        , b.name            AS category_name-->
+<!--        , a.created_at-->
+<!--        , a.modified_at-->
+<!--        , c.name            AS created_by_name-->
+<!--        , d.name            AS modified_by_name-->
+<!--        FROM post a-->
+<!--        LEFT JOIN category b ON a.category_id = b.id-->
+<!--        LEFT JOIN MEMBER c ON a.created_by = c.id-->
+<!--        LEFT JOIN MEMBER d ON a.modified_by = d.id-->
+<!--        WHERE a.deleted_at IS NULL-->
+<!--    </select>-->
+<!--    <select id="findDeletedPosts" resultMap="postResultMap">-->
+<!--        SELECT-->
+<!--        a.id-->
+<!--        , a.title-->
+<!--        , a.content-->
+<!--        , b.name            AS category_name-->
+<!--        , a.created_at-->
+<!--        , a.modified_at-->
+<!--        , c.name            AS created_by_name-->
+<!--        , d.name            AS modified_by_name-->
+<!--        FROM post a-->
+<!--        LEFT JOIN category b ON a.category_id = b.id-->
+<!--        LEFT JOIN MEMBER c ON a.created_by = c.id-->
+<!--        LEFT JOIN MEMBER d ON a.modified_by = d.id-->
+<!--        WHERE a.deleted_at IS NOT NULL-->
+<!--        AND c.username = #{currentUserName}-->
+<!--    </select>-->
+<!--</mapper>-->

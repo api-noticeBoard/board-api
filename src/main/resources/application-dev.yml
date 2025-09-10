@@ -31,7 +31,10 @@ spring:
 #    username: sa
 #    password:
   jpa:
-    database-platform: org.hibernate.dialect.H2Dialect
+#    database-platform: org.hibernate.dialect.H2Dialect
+    # 1. database-platform을 Oracle 용으로 변경.
+    #    Oracle 12c 이상 버전의 경우 아래 설정을 권장.
+    database-platform: org.hibernate.dialect.OracleDialect
     hibernate:
       # 개발 편의를 위해 테이블을 자동으로 업데이트합니다.
       ddl-auto: update

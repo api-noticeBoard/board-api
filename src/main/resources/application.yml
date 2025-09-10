@@ -6,10 +6,16 @@ spring:
     name: board
   # 로컬에서 별도 설정 없이 실행 시 'dev' 프로필을 기본으로 사용합니다.
   profiles:
-    active: dev
+    # PROFILE 환경 변수가 없으면 dev와 local 프로파일을 기본으로 활성화
+    active: ${PROFILE:dev,local}
 # MyBatis가 mapper 파일을 찾을 경로를 명시적으로 지정
 mybatis:
   mapper-locations: classpath:/mapper/**/*.xml
+  # MyBatis 전역 설정을 추가
+  configuration:
+    # null 값이 파라미터로 넘어올 때, JDBC 타입을 VARCHAR로 지정하여
+    # ORA-17004 오류를 방지
+    jdbc-type-for-null: VARCHAR
 
 # OpenAPI(Swagger) 공통 정보: API의 제목, 설명 등은 모든 환경에서 동일합니다.
 openapi:
