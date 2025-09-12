@@ -17,10 +17,7 @@ import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -51,17 +48,19 @@ public class PostService {
     /**
      * 카테고리 전체조회
      *
-     * @return  전체 List 데이터
+     * @return 전체 List 데이터
      */
     @Transactional(readOnly = true)
-    public PageDto.Response<PostDto.Response> getAllPost(PageDto.Request pageRequest){
+    public PageDto.Response<PostDto.Response> getAllPost(PageDto.Request pageRequest) {
         // JPA
 //        return categoryRepo.findAll().stream()
 //                .map(CategoryDto.Response::from)
 //                .collect(Collectors.toList());
         // MyBatis
         List<PostDto.Response> content = postMapper.findAll(pageRequest);
-        if (content == null || content.isEmpty()) {throw new BusinessException(ErrorCode.CATEGORY_NOT_FOUND);}
+        if (content == null || content.isEmpty()) {
+            throw new BusinessException(ErrorCode.CATEGORY_NOT_FOUND);
+        }
         return new PageDto.Response<>(content, pageRequest);
     }
 
@@ -81,7 +80,7 @@ public class PostService {
         // MyBatis
         Optional<PostDto.Response> response = postMapper.findById(postId);
 
-        return response.orElseThrow(()-> new BusinessException(ErrorCode.POST_NOT_FOUND));
+        return response.orElseThrow(() -> new BusinessException(ErrorCode.POST_NOT_FOUND));
     }
 
 
@@ -151,49 +150,102 @@ public class PostService {
     /**
      * 게시물 soft 삭제
      *
-     * @param postId
+     * @param postIds
      */
     @Transactional
-    public void softDeletePost(Long postId) {
+    public void softDeletePost(List<Long> postIds) {
         AuthUser currentUser = UserInfoHolder.getAuthUser(); // 현재 로그인 정보
-        Post post = postRepo.findById(postId)
-                .orElseThrow(()-> new BusinessException(ErrorCode.POST_NOT_FOUND));
+        // id 한번에 조회
+        List<Post> foundPost = postRepo.findAllById(postIds);
+        // 존재하지 않는 id찾아내기
+        if (foundPost.size() != postIds.size()) {
+            Set<Long> foundIds = foundPost.stream()
+                    .map(Post::getId)
+                    .collect(Collectors.toSet());
+            // 파라미터로 들어온 id 중 없는 ID 목록 생성
+            List<Long> notFoundIds = postIds.stream()
+                    .filter(id -> !foundIds.contains(id))
+                    .toList();
+
+            throw new BusinessException(ErrorCode.POST_NOT_FOUND, ": " + notFoundIds + "번 게시글을 찾을 수 없습니다.");
+        }
 
         // 관리자 및 작성자만 삭제 가능
-        if (!isAuthorOrAdmin(post, currentUser)){
-            throw new BusinessException(ErrorCode.ACCESS_DENIED);
+        for (Post post : foundPost) {
+            // 각 권한 확인
+            if (!isAuthorOrAdmin(post, currentUser)) {
+                throw new BusinessException(ErrorCode.ACCESS_DENIED);
+            }
+            // setDeletedAt
+            post.softDelete();
         }
-        // setDeletedAt
-        post.softDelete();
     }
 
+    /**
+     * 게시물 영구 삭제
+     * @param postIds
+     */
     @Transactional
-    public void hardDeletePost(Long postId) {
+    public void hardDeletePost(List<Long> postIds) {
         AuthUser currentUser = UserInfoHolder.getAuthUser();
-        // ✨ Hard Delete는 삭제된 게시글도 대상이 될 수 있으므로, JPA 기본 findById를 우회해야 함
-        // 여기서는 우선 삭제되지 않은 게시글만 영구 삭제한다고 가정.
-        Post post = postRepo.findById(postId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.POST_NOT_FOUND));
+        // id 한번에 조회
+        List<Post> foundPost = postRepo.findAllById(postIds);
+        // 존재하지 않는 id찾아내기
+        if (foundPost.size() != postIds.size()) {
+            Set<Long> foundIds = foundPost.stream()
+                    .map(Post::getId)
+                    .collect(Collectors.toSet());
+            // 파라미터로 들어온 id 중 없는 ID 목록 생성
+            List<Long> notFoundIds = postIds.stream()
+                    .filter(id -> !foundIds.contains(id))
+                    .toList();
 
-        // ✨ 권한 검사: 관리자이거나, 게시글 작성자인 경우에만 영구 삭제 가능
-        if (!isAuthorOrAdmin(post, currentUser)) {
-            throw new BusinessException(ErrorCode.ACCESS_DENIED);
+            throw new BusinessException(ErrorCode.POST_NOT_FOUND, ": " + notFoundIds + "번 게시글을 찾을 수 없습니다.");
         }
 
-        postRepo.delete(post); // 실제 DELETE 쿼리 실행
+        // 관리자 및 작성자만 삭제 가능
+        for (Post post : foundPost) {
+            // 각 권한 확인 및 임시 삭제가 아닌 경우
+            if (!isAuthorOrAdmin(post, currentUser) && post.getDeletedAt() == null) {
+                throw new BusinessException(ErrorCode.ACCESS_DENIED);
+            }
+            // setDeletedAt
+            postRepo.delete(post); // 실제 DELETE 쿼리 실행
+        }
     }
 
+    /**
+     * 게시물 복원
+     *
+     * @param postIds
+     */
     @Transactional
-    public void restorePost(Long postId) {
+    public void restorePost(List<Long> postIds) {
         AuthUser currentUser = UserInfoHolder.getAuthUser();
-        Post post = postRepo.findById(postId)
-                .orElseThrow(()-> new BusinessException(ErrorCode.POST_NOT_FOUND));
-        // 관리자 및 작성자만 복구 가능
-        if (!isAuthorOrAdmin(post, currentUser)){
-            throw new BusinessException(ErrorCode.ACCESS_DENIED);
+        // id 한번에 조회
+        List<Post> foundPost = postRepo.findAllById(postIds);
+        // 존재하지 않는 id찾아내기
+        if (foundPost.size() != postIds.size()) {
+            Set<Long> foundIds = foundPost.stream()
+                    .map(Post::getId)
+                    .collect(Collectors.toSet());
+            // 파라미터로 들어온 id 중 없는 ID 목록 생성
+            List<Long> notFoundIds = postIds.stream()
+                    .filter(id -> !foundIds.contains(id))
+                    .toList();
+
+            throw new BusinessException(ErrorCode.POST_NOT_FOUND, ": " + notFoundIds + "번 게시글을 찾을 수 없습니다.");
         }
-        // setDeletedAt
-        post.restore();
+
+        // 관리자 및 작성자만 삭제 가능
+        for (Post post : foundPost) {
+            // 각 권한 확인
+            if (!isAuthorOrAdmin(post, currentUser)) {
+                throw new BusinessException(ErrorCode.ACCESS_DENIED);
+            }
+            // setDeletedAt
+            post.restore();
+        }
     }
 
     /**
@@ -218,11 +270,12 @@ public class PostService {
 
     /**
      * 유저 및 관리자 판별 help method
+     *
      * @param post
      * @param user
      * @return
      */
-    private boolean isAuthorOrAdmin(Post post, AuthUser user){
+    private boolean isAuthorOrAdmin(Post post, AuthUser user) {
         boolean isAdmin = user.roles().contains("ROLE_ADMIN");
         boolean isAuthor = post.getCreatedBy().equals(user.userId());
 
@@ -231,10 +284,10 @@ public class PostService {
 
     /**
      * ✨ [신규] 엑셀 파일로부터 변환된 DTO 리스트를 받아 여러 게시글을 한 번에 생성합니다.
-     * @Transactional 어노테이션을 통해, 모든 데이터가 성공적으로 저장되거나 하나라도 실패하면 전체가 롤백됩니다.
      *
      * @param postDtoList 엑셀에서 변환된 DTO 목록
      * @return 성공적으로 저장된 게시글의 수
+     * @Transactional 어노테이션을 통해, 모든 데이터가 성공적으로 저장되거나 하나라도 실패하면 전체가 롤백됩니다.
      */
     @Transactional
     public int createPostsInBulk(List<PostDto.UploadRequest> postDtoList) {
@@ -254,7 +307,7 @@ public class PostService {
         // DTO 리스트 -> Post Entity로 변환
         List<Post> postsToSave = new ArrayList<>();
         int rowNum = 1; // 엑셀 행 번호 (헤더 제외)
-        for (PostDto.UploadRequest dto : postDtoList){
+        for (PostDto.UploadRequest dto : postDtoList) {
             rowNum++;
             // 유효성 검증
             if (dto.getTitle() == null || dto.getTitle().isBlank()) {
