@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -23,6 +24,13 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/v1/exams")
 public class ExamController {
     private final ExamService examService;
+
+    @GetMapping("/bizday")
+    @Operation(summary = "영업일 확인", description = "날짜로 검색")
+    public boolean bizDay(String date) {
+
+        return examService.isBizDay(date);
+    }
 
     /**
      * 특정 ID의 정보 조회.

@@ -1,3 +1,6 @@
 spring:
   datasource:
     password: JimiAsdf1234
+api:
+  holiday:
+    service-key: "380c6a633b2117740d08f3e457ee788cc7db3989c2c1bb49eecd48d72ba44754"

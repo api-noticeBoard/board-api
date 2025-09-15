@@ -19,7 +19,6 @@ spring:
       enabled: true
       path: /h2-console
   datasource:
-    # TODO: DB서버로 변경 예정
     # Oracle Autonomous Database
     url: jdbc:oracle:thin:@(description= (retry_count=20)(retry_delay=3)(address=(protocol=tcps)(port=1522)(host=adb.ap-chuncheon-1.oraclecloud.com))(connect_data=(service_name=gde55684cd674ef_boarddb_medium.adb.oraclecloud.com))(security=(ssl_server_dn_match=yes)))
     username: ADMIN

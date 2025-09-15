@@ -39,3 +39,8 @@ jwt:
   token:
     expire:
       milliseconds: 3600000 # 1시간 (60 * 60 * 1000)
+
+# api 사용
+api:
+  holiday:
+    service-key: ${HOLIDAY_SERVICE_KEY}

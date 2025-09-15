@@ -3,20 +3,30 @@ package com.portfolio.board.exam.service;
 import com.portfolio.board.exam.entity.ExamEntity;
 import com.portfolio.board.exam.mapper.ExamMapper;
 import com.portfolio.board.exam.repository.ExamRepository;
-import jakarta.persistence.EntityNotFoundException; // 표준 예외 사용
+import com.portfolio.common.business.api.HolidayApiClient;
+import com.portfolio.common.business.util.DateUtils;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ExamService {
     private final ExamRepository examRepository;
     private final ExamMapper examMapper;
+
+    @Autowired
+    private HolidayApiClient holidayApiClient;
 
     @Transactional(readOnly = true)
     public List<ExamEntity> getAllExams() { // 메서드명 변경
@@ -93,5 +103,18 @@ public class ExamService {
     @Transactional
     public void deleteExamByMyBatis(Long id) { // 메서드명 변경
         examMapper.deleteExam(id);
+    }
+
+
+    @Transactional
+    public boolean isBizDay(String date) {
+        LocalDate convertDate = DateUtils.parseDate(date);
+
+        Set<LocalDate> holidays = holidayApiClient.getHoliday(convertDate.getYear());
+        log.info(">>>>>>>>>>>>>>>>>>>>>>>>> convertDate : {}", convertDate);
+        log.info(">>>>>>>>>>>>>>>>>>>>>>>>> convertDate.getYear() : {}", convertDate.getYear());
+        log.info(">>>>>>>>>>>>>>>>>>>>>>>>> holidays : {}", holidays);
+
+        return DateUtils.isBusinessDay(convertDate, holidays);
     }
 }

@@ -24,6 +24,7 @@ jobs:
         # env 블록을 통해 GitHub Secret을 환경 변수로 주입.
         env:
           DB_PASSWORD: ${{ secrets.BOARD_DB_PASSWORD }}
+          HOLIDAY_SERVICE_KEY: ${{ secrets.HOLIDAY_SERVICE_KEY }}
         run: ./gradlew build
 
       # 4. 실제 배포 단계 (예: Docker 이미지 빌드 후 Push 또는 EC2에 배포)
@@ -31,6 +32,7 @@ jobs:
       - name: Deploy to Server
         env:
           DB_PASSWORD: ${{ secrets.BOARD_DB_PASSWORD }}
+          HOLIDAY_SERVICE_KEY: ${{ secrets.HOLIDAY_SERVICE_KEY }}
         run: |
           # 여기에 실제 배포 스크립트를 작성합니다.
           # 예: ssh, scp, docker push 등
