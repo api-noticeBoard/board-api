@@ -13,7 +13,7 @@ jobs:
     steps:
       # 1. 소스 코드 체크아웃
       - name: Checkout repository
-      - uses: actions/checkout@v4
+        uses: actions/checkout@v4
 
       # 2. JDK 설정
       - name: Set up JDK 21
@@ -26,14 +26,11 @@ jobs:
       #    테스트 코드가 DB에 접속해야 한다면 이 단계에서 환경 변수가 필요.
       - name: Build with Gradle
         run: chmod +x ./gradlew
-        # env 블록을 통해 GitHub Secret을 환경 변수로 주입.
-        env:
-          DB_PASSWORD: ${{ secrets.BOARD_DB_PASSWORD }}
-          HOLIDAY_SERVICE_KEY: ${{ secrets.HOLIDAY_SERVICE_KEY }}
 
       # 4. 실제 배포 단계 (예: Docker 이미지 빌드 후 Push 또는 EC2에 배포)
       #    이 단계에서도 애플리케이션을 실행해야 하므로 동일하게 환경 변수를 주입.
       - name: Deploy to Server
+        # env 블록을 통해 GitHub Secret을 환경 변수로 주입.
         env:
           DB_PASSWORD: ${{ secrets.BOARD_DB_PASSWORD }}
           HOLIDAY_SERVICE_KEY: ${{ secrets.HOLIDAY_SERVICE_KEY }}
