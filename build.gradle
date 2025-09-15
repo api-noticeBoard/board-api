@@ -50,7 +50,7 @@ repositories {
 	// GitHub Packages 사용
 	maven{
 		name = "GitHubPackages"
-		def repoPath = System.getenv("GPR_REPO_PATH") ?: project.findProperty("gpr.sys.path")
+		def repoPath = System.getenv("GPR_SYS_PATH") ?: project.findProperty("gpr.sys.path")
 		// URL: https://maven.pkg.github.com/{조직명}/{저장소}
 		url = "https://maven.pkg.github.com/${repoPath}"
 		credentials{
