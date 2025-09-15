@@ -31,11 +31,15 @@ jobs:
       #    이 단계에서도 애플리케이션을 실행해야 하므로 동일하게 환경 변수를 주입.
       - name: Deploy to Server
         # env 블록을 통해 GitHub Secret을 환경 변수로 주입.
-        env:
-          DB_PASSWORD: ${{ secrets.BOARD_DB_PASSWORD }}
-          HOLIDAY_SERVICE_KEY: ${{ secrets.HOLIDAY_SERVICE_KEY }}
         run: |
           ./gradlew build
           # 여기에 실제 배포 스크립트를 작성합니다.
           # 예: ssh, scp, docker push 등
           echo "Deploying to server..."
+        env:
+          DB_PASSWORD: ${{ secrets.BOARD_DB_PASSWORD }}
+          HOLIDAY_SERVICE_KEY: ${{ secrets.HOLIDAY_SERVICE_KEY }}
+          GPR_SYS_PATH: ${{secrets.COMM_SYS_PACKAGE_PATH}}
+          GPR_BIZ_PATH: ${{secrets.COMM_BIZ_PACKAGE_PATH}}
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
