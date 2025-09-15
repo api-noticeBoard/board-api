@@ -22,20 +22,16 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
 
-      # 3. Gradle 빌드 (가장 중요)
+      # 3. Gradle 실행 권한 부여
       #    테스트 코드가 DB에 접속해야 한다면 이 단계에서 환경 변수가 필요.
-      - name: Build with Gradle
+      - name: Grant execute permission for gradlew
         run: chmod +x ./gradlew
 
-      # 4. 실제 배포 단계 (예: Docker 이미지 빌드 후 Push 또는 EC2에 배포)
+      # 4. Gradle 빌드 및 테스트 (예: Docker 이미지 빌드 후 Push 또는 EC2에 배포)
       #    이 단계에서도 애플리케이션을 실행해야 하므로 동일하게 환경 변수를 주입.
-      - name: Deploy to Server
+      - name: Build with Gradle
         # env 블록을 통해 GitHub Secret을 환경 변수로 주입.
-        run: |
-          ./gradlew build
-          # 여기에 실제 배포 스크립트를 작성합니다.
-          # 예: ssh, scp, docker push 등
-          echo "Deploying to server..."
+        run: ./gradlew build
         env:
           DB_PASSWORD: ${{ secrets.BOARD_DB_PASSWORD }}
           HOLIDAY_SERVICE_KEY: ${{ secrets.HOLIDAY_SERVICE_KEY }}
@@ -43,3 +39,9 @@ jobs:
           GPR_BIZ_PATH: ${{secrets.COMM_BIZ_PACKAGE_PATH}}
           GITHUB_ACTOR: ${{ github.actor }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # 실제 배포 단계
+      - name: Deploy to Server
+        run: |
+          # 여기에 실제 배포 스크립트를 작성합니다.
+          # 예: ssh, scp, docker push 등
+          echo "Deploying to server..."
