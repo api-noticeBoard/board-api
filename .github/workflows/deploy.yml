@@ -35,8 +35,8 @@ jobs:
         env:
           DB_PASSWORD: ${{ secrets.BOARD_DB_PASSWORD }}
           HOLIDAY_SERVICE_KEY: ${{ secrets.HOLIDAY_SERVICE_KEY }}
-          GPR_SYS_PATH: ${{secrets.COMM_SYS_PACKAGE_PATH}}
-          GPR_BIZ_PATH: ${{secrets.COMM_BIZ_PACKAGE_PATH}}
+          GPR_SYS_PATH: ${{ secrets.COMM_SYS_PACKAGE_PATH }}
+          GPR_BIZ_PATH: ${{ secrets.COMM_BIZ_PACKAGE_PATH }}
           GITHUB_ACTOR: ${{ github.actor }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       # 실제 배포 단계
