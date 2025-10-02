@@ -38,6 +38,10 @@ jobs:
           GITHUB_ACTOR: ${{ github.actor }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      # 빌드 완료 후 'build/libs' 파일 생성 확인 로그 출력
+      - name: Check build artifacts
+        run: ls -l build/libs
+
       # 실제 배포 단계
       # SCP를 사용하여 JAR 파일을 OCI 서버에 배포
       # appleboy/scp-action 액션을 사용하여 빌드된 JAR 파일을 서버로 복사합니다.
@@ -52,10 +56,19 @@ jobs:
           key: ${{ secrets.OCI_SSH_PRIVATE_KEY }}
           # 복사할 소스 파일. 'build/libs/' 폴더 아래의 모든 .jar 파일을 의미합니다.
           #  '-plain.jar'로 끝나는 파일을 제외하여 JAR파일 복사JAR
-          source: "build/libs/!(*-plain).jar"
+          source: "build/libs/*.jar"
           # 파일을 복사할 서버의 대상 경로
           target: "/home/opc/app"
-          # 항상 'app.jar'로 서버에 배포
-          rename: app.jar
           # 소스 경로의 상위 디렉토리(build/libs)를 제거하고 파일명만 복사합니다.
-#          strip_components: 2
+          strip_components: 2
+          # 이름이 '-plain.jar'로 끝나지 않는 파일을 찾아 'app.jar'로 이름을 변경
+          script_after: |
+            mkdir /home/opc/app
+            cd /home/opc/app
+            for f in *.jar; do
+              if [[ ! "$f" == *"-plain.jar" ]]; then
+                mv "$f" app.jar
+                break
+              fi
+            done
+          
