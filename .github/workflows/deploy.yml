@@ -39,8 +39,12 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       # 빌드 완료 후 'build/libs' 파일 생성 확인 로그 출력
-      - name: Check build artifacts
-        run: ls -l build/libs
+      - name: Find artifact
+        id: find_artifact
+        run: |
+          JAR_FILE_PATH=$(find build/libs -name "*.jar" ! -name "*-plain.jar")
+          echo "Found JAR file at: $JAR_FILE_PATH"
+          echo "jar_path=$JAR_FILE_PATH" >> $GITHUB_OUTPUT
 
       # --- 배포 시작 ---
       # SCP를 사용하여 JAR 파일을 OCI 서버에 배포
