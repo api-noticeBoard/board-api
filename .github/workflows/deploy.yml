@@ -46,7 +46,7 @@ jobs:
       # SCP를 사용하여 JAR 파일을 OCI 서버에 배포
       # appleboy/scp-action 액션을 사용하여 빌드된 JAR 파일을 서버로 복사합니다.
       - name: Deploy JAR to OCI Server
-        uses: appleboy/scp-action@master
+        uses: appleboy/ssh-action@master
         with:
           # 서버 주소 (GitHub Secrets에서 가져옴)
           host: ${{ secrets.OCI_SSH_HOST }}
@@ -63,12 +63,15 @@ jobs:
           strip_components: 2
           # 이름이 '-plain.jar'로 끝나지 않는 파일을 찾아 'app.jar'로 이름을 변경
           script_after: |
-            mkdir /home/opc/app
+            mkdir -p /home/opc/app
+            ls -l /home/opc
             cd /home/opc/app
             for f in *.jar; do
               if [[ ! "$f" == *"-plain.jar" ]]; then
+                echo "Rename JAR to app.jar"
                 mv "$f" app.jar
                 break
               fi
             done
-          
+            # '-plain.jar' 파일은 삭제하여 정리
+            rm -f *-plain.jar
