@@ -42,11 +42,11 @@ jobs:
       - name: Check build artifacts
         run: ls -l build/libs
 
-      # 실제 배포 단계
+      # --- 배포 시작 ---
       # SCP를 사용하여 JAR 파일을 OCI 서버에 배포
       # appleboy/scp-action 액션을 사용하여 빌드된 JAR 파일을 서버로 복사합니다.
-      - name: Deploy JAR to OCI Server
-        uses: appleboy/scp-action@master
+      - name: Create directory on server
+        uses: appleboy/ssh-action@master
         with:
           # 서버 주소 (GitHub Secrets에서 가져옴)
           host: ${{ secrets.OCI_SSH_HOST }}
@@ -54,31 +54,32 @@ jobs:
           username: ${{ secrets.OCI_SSH_USERNAME }}
           # SSH 프라이빗 키 (GitHub Secrets에서 가져옴)
           key: ${{ secrets.OCI_SSH_PRIVATE_KEY }}
+          script: mkdir -p /home/opc/app
+      # JAR 파일 서버로 복사 (scp-action 사용!)
+      - name: Deploy JAR to OCI Server
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.OCI_SSH_HOST }}
+          username: ${{ secrets.OCI_SSH_USERNAME }}
+          key: ${{ secrets.OCI_SSH_PRIVATE_KEY }}
+          target: "/home/opc/app"
+      # 서버에서 배포 스크립트 실행 (ssh-action 사용!)
+      - name: Execute deployment script on server
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.OCI_SSH_HOST }}
+          username: ${{ secrets.OCI_SSH_USERNAME }}
+          key: ${{ secrets.OCI_SSH_PRIVATE_KEY }}
           script: |
-            # 1. 배포 디렉토리로 이동합니다.
             cd /home/opc/app
-
-            # 2. 기존에 실행 중이던 'app.jar' 프로세스를 종료합니다.
-            # pgrep으로 'app.jar'를 실행 중인 프로세스 ID(PID)를 찾습니다.
-            # 만약 실행 중인 프로세스가 있다면(exit code 0), kill 명령어로 종료시킵니다.
-            # 2>/dev/null 은 '실행 중인 프로세스가 없을 때' 나는 오류 메시지를 숨겨줍니다.
             if pgrep -f "app.jar" > /dev/null
             then
               echo "Stopping existing application..."
               kill -9 $(pgrep -f "app.jar")
             fi
-
-            # 3. '-plain.jar'가 아닌 파일을 찾아 'app.jar'로 이름을 변경합니다.
-            # 2>/dev/null은 파일이 없을 때 나는 오류 메시지를 숨겨줍니다.
-            mv -f !(*-plain.jar).jar app.jar 2>/dev/null
+            mv -f !(*-plain).jar app.jar 2>/dev/null
             echo "Renamed JAR to app.jar"
             rm -f *-plain.jar
-
-            # 4. (★★★★★ 핵심 ★★★★★) 새로운 'app.jar'를 백그라운드에서 실행합니다.
-            # nohup: 터미널 연결이 끊어져도 계속 실행
-            # java -jar app.jar: app.jar 실행
-            # > /dev/null 2>&1: 모든 표준 출력(stdout)과 표준 에러(stderr)를 버려서 로그 파일이 비대해지는 것을 방지
-            # &: 백그라운드에서 실행
             echo "Starting new application..."
             nohup java -jar app.jar > /dev/null 2>&1 &
             echo "Deployment and execution completed."
