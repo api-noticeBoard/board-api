@@ -63,6 +63,7 @@ jobs:
           username: ${{ secrets.OCI_SSH_USERNAME }}
           key: ${{ secrets.OCI_SSH_PRIVATE_KEY }}
           target: "/home/opc/app"
+          source: "build/libs/!(*-plain).jar"
       # 서버에서 배포 스크립트 실행 (ssh-action 사용!)
       - name: Execute deployment script on server
         uses: appleboy/ssh-action@master
