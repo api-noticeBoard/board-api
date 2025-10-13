@@ -85,12 +85,13 @@ jobs:
               echo "Stopping existing application..."
               kill -9 $(pgrep -f "app.jar")
             fi
-            # 서버에 복사된 JAR 파일의 이름이 무엇이든 상관없이 'app.jar'로 강제 변경합니다.
-            # 4단계에서 하나의 파일만 복사했으므로, build/libs/*.jar 패턴 대신 그냥 *.jar를 사용해도 안전합니다.
-            RENAMED_FILE=$(find . -name "*.jar" ! -name "app.jar")
-            if [ -n "$RENAMED_FILE" ]; then
-                mv -f "$RENAMED_FILE" app.jar
-                echo "Renamed $RENAMED_FILE to app.jar"
+            JAR_FILE=$(find . -maxdepth 1 -name "*.jar" ! -name "app.jar")
+#             서버에 복사된 JAR 파일의 이름이 무엇이든 상관없이 'app.jar'로 강제 변경합니다.
+#             4단계에서 하나의 파일만 복사했으므로, build/libs/*.jar 패턴 대신 그냥 *.jar를 사용해도 안전합니다.
+#            RENAMED_FILE=$(find . -name "*.jar" ! -name "app.jar")
+            if [ -n "$JAR_FILE" ]; then
+                mv -f "$JAR_FILE" app.jar
+                echo "Renamed $JAR_FILE to app.jar"
             fi
             echo "Starting new application..."
             nohup java -jar app.jar > /dev/null 2>&1 &
