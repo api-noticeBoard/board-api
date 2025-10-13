@@ -81,10 +81,10 @@ jobs:
           key: ${{ secrets.OCI_SSH_PRIVATE_KEY }}
           script: |
             cd /home/opc/app
-            if pgrep -f "java -jar app.jar" > /dev/null
+            if pgrep -f "java -jar app[.]jar" > /dev/null
             then
               echo "Stopping existing application..."
-              kill -9 $(pgrep -f "java -jar app.jar")
+              kill -9 $(pgrep -f "java -jar app[.]jar")
             fi
             
             JAR_FILE=$(find . -maxdepth 1 -name "*.jar" ! -name "app.jar")
@@ -97,4 +97,4 @@ jobs:
             fi
             echo "Starting new application..."
             nohup java -jar app.jar > /dev/null 2>&1 &
-            echo "Deployment and execution completed."
+            echo "Deployment and execution completed. New PID is $(cat app.pid)"
