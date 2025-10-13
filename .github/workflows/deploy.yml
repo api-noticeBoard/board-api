@@ -95,5 +95,5 @@ jobs:
                 echo "Renamed $JAR_FILE to app.jar"
             fi
             echo "Starting new application..."
-            nohup java -jar app.jar > /dev/null 2>&1 & echo $! > app.pid
+            nohup java -jar app.jar > app.log 2>&1 & echo $! > app.pid
             echo "Deployment and execution completed. New PID is $(cat app.pid)"
