@@ -71,7 +71,6 @@ jobs:
           # 이제 '파일을 찾지 못하는' 문제는 절대 발생하지 않습니다.
           source: ${{ steps.find_artifact.outputs.jar_path }}
           strip_components: 2
-          # source: "build/libs/!(*-plain).jar"
       # 서버에서 배포 스크립트 실행 (ssh-action 사용!)
       - name: Execute deployment script on server
         uses: appleboy/ssh-action@master
@@ -81,16 +80,16 @@ jobs:
           key: ${{ secrets.OCI_SSH_PRIVATE_KEY }}
           script: |
             cd /home/opc/app
-            if pgrep -f "java -jar app[.]jar" > /dev/null
-            then
+            if [ -f "app.pid" ]; then
               echo "Stopping existing application..."
-              kill -9 $(pgrep -f "java -jar app[.]jar")
+              kill -9 $(cat app.pid)
+              rm app.pid
+            echo "Application stopped."
             fi
             
             JAR_FILE=$(find . -maxdepth 1 -name "*.jar" ! -name "app.jar")
             # 서버에 복사된 JAR 파일의 이름이 무엇이든 상관없이 'app.jar'로 강제 변경합니다.
             # 4단계에서 하나의 파일만 복사했으므로, build/libs/*.jar 패턴 대신 그냥 *.jar를 사용해도 안전합니다.
-            # RENAMED_FILE=$(find . -name "*.jar" ! -name "app.jar")
             if [ -n "$JAR_FILE" ]; then
                 mv -f "$JAR_FILE" app.jar
                 echo "Renamed $JAR_FILE to app.jar"
