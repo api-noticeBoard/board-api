@@ -81,11 +81,11 @@ jobs:
           key: ${{ secrets.OCI_SSH_PRIVATE_KEY }}
           script: |
             cd /home/opc/app
-            # if pgrep -f "java -jar app[.]jar" > /dev/null
-            # then
-            #   echo "Stopping existing application..."
-            #   kill -9 $(pgrep -f "java -jar app[.]jar")
-            # fi
+            if pgrep -f "java -jar app[.]jar" > /dev/null
+            then
+              echo "Stopping existing application..."
+              kill -9 $(pgrep -f "java -jar app[.]jar")
+            fi
             
             JAR_FILE=$(find . -maxdepth 1 -name "*.jar" ! -name "app.jar")
             # 서버에 복사된 JAR 파일의 이름이 무엇이든 상관없이 'app.jar'로 강제 변경합니다.
