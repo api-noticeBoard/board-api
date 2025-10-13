@@ -70,6 +70,7 @@ jobs:
           # 'source'에 와일드카드 패턴 대신, 4단계에서 찾은 '정확한' 파일 경로를 지정합니다.
           # 이제 '파일을 찾지 못하는' 문제는 절대 발생하지 않습니다.
           source: ${{ steps.find_artifact.outputs.jar_path }}
+          strip_components: 2
           # source: "build/libs/!(*-plain).jar"
       # 서버에서 배포 스크립트 실행 (ssh-action 사용!)
       - name: Execute deployment script on server
